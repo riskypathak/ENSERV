@@ -1,0 +1,511 @@
+﻿using DataAccessLayer;
+using System;
+using System.Globalization;
+using System.Web.UI;
+using Utilities;
+using System.Data.OleDb;
+using MKB;
+using System.Data;
+using System.Web.UI.WebControls;
+using System.Text;
+using CrystalDecisions.Shared;
+using CrystalDecisions.CrystalReports;
+using CrystalDecisions.CrystalReports.Engine;
+
+using System.Text;
+
+
+public partial class Regulisation_frmMeterDetails : System.Web.UI.Page
+{
+	IDBManager m_db;
+	int iRecordsFetched;
+	ParameterFields crParameterFields = new ParameterFields();
+	ParameterField crParameterField = new ParameterField();
+	ParameterDiscreteValue crParameterDiscreteValue = new ParameterDiscreteValue();
+	ParameterValues paramValues = new ParameterValues();
+	string m_consnumber = "";
+
+	public object report = new object();
+	StringBuilder output = new StringBuilder();
+	public string listFilter = "";
+	bool IsPageRefresh;
+	protected void Page_Load(object sender, System.EventArgs e)
+	{
+		if (!IsPostBack) {
+			DataSet pDataset = new DataSet();
+			m_db = new DBManager(DataProvider.Oracle);
+            m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+			//m_db.ConnectionString = Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+			m_db.Open();
+
+			pDataset = m_db.ExecuteDataSet(CommandType.Text, "select MeterTypeShortCode from tbl_manufacturer");
+
+			if (pDataset == null) {
+				m_db.Close();
+				m_db.Dispose();
+				// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+				Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "division Det");
+			}
+
+			if (pDataset.Tables[0].Rows.Count > 0) {
+				for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+					cmbManufacturerName.Items.Add(pDataset.Tables[0].Rows[i]["MeterTypeShortCode"].ToString());
+
+				}
+
+			}
+			//pDataset = m_db.ExecuteDataSet(CommandType.Text, "select distinct(Description) from tbl_metertypes")
+
+			//If pDataset Is Nothing Then
+			//    m_db.Close()
+			//    m_db.Dispose()
+			//    ' strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+			//    Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" & "tbl_metertypes")
+			//End If
+
+			//If pDataset.Tables(0).Rows.Count > 0 Then
+			//    For i = 0 To pDataset.Tables(0).Rows.Count - 1
+			//        cmbMeterType.Items.Add(pDataset.Tables(0).Rows(i)(0))
+
+			//    Next
+
+			//End If
+			txtKVAH.Enabled = false;
+			txtKVARH.Enabled = false;
+			txtCTR.Enabled = false;
+			txtECTR.Enabled = false;
+			txtPTR.Enabled = false;
+			txtEPTR.Enabled = false;
+			txtMeterRatio.Enabled = false;
+
+			listFilter = BindName();
+			pDataset.Dispose();
+			m_db.Close();
+			m_db.Dispose();
+			Session["AutoComplete"] = output.ToString();
+			ViewState["postids"] = System.Guid.NewGuid().ToString();
+			Session["postid"] = ViewState["postids"].ToString();
+		}
+		 CUSERDetails objCUSERDetails = new CUSERDetails();
+
+
+		objCUSERDetails = (CUSERDetails)Session["sesuUserDetails"];
+
+		if (objCUSERDetails == null) {
+
+			Response.Write("<script>alert('Session Expired');document.location.href='Login.aspx';</script>");
+			// if user entered not through the loginpage he has no permissions to view this
+			return;
+
+		}
+
+
+		listFilter = Session["AutoComplete"].ToString();
+	}
+
+	private string BindName()
+	{
+		DataSet pDataset = new DataSet();
+		pDataset = m_db.ExecuteDataSet(CommandType.Text, "select TicketNumber  from tbl_ticketmaster");
+		if (pDataset == null) {
+			m_db.Close();
+			m_db.Dispose();
+			// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+			Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "division Det");
+		}
+
+
+
+		output.Append("[");
+		for (int i = 0; i <= pDataset.Tables[0].Rows.Count-1; i++) {
+			output.Append((char)34 + pDataset.Tables[0].Rows[i]["TicketNumber"].ToString() + (char)34);
+
+			if (i != (pDataset.Tables[0].Rows.Count - 1)) {
+				output.Append(",");
+			}
+		}
+		output.Append("];");
+		return output.ToString();
+	}
+
+	private string BindGP()
+	{
+		DataSet pDataset = new DataSet();
+		pDataset = m_db.ExecuteDataSet(CommandType.Text, "select TicketNumber  from tbl_ticketmaster");
+		if (pDataset == null) {
+			m_db.Close();
+			m_db.Dispose();
+			// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+			Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "division Det");
+		}
+
+
+
+		output.Append("[");
+		for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+            output.Append((char)34 + pDataset.Tables[0].Rows[i]["TicketNumber"].ToString() + (char)34);
+
+			if (i != (pDataset.Tables[0].Rows.Count - 1)) {
+				output.Append(",");
+			}
+		}
+		output.Append("];");
+		return output.ToString();
+	}
+
+	private string BindBlock()
+	{
+		DataSet pDataset = new DataSet();
+		pDataset = m_db.ExecuteDataSet(CommandType.Text, "select TicketNumber  from tbl_ticketmaster");
+		if (pDataset == null) {
+			m_db.Close();
+			m_db.Dispose();
+			// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+			Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "division Det");
+		}
+
+
+
+		output.Append("[");
+		for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+            output.Append((char)34 + pDataset.Tables[0].Rows[i]["TicketNumber"].ToString() + (char)34);
+
+			if (i != (pDataset.Tables[0].Rows.Count - 1)) {
+				output.Append(",");
+			}
+		}
+		output.Append("];");
+		return output.ToString();
+	}
+
+	private string BindDistrict()
+	{
+		DataSet pDataset = new DataSet();
+		pDataset = m_db.ExecuteDataSet(CommandType.Text, "select TicketNumber  from tbl_ticketmaster");
+		if (pDataset == null) {
+			m_db.Close();
+			m_db.Dispose();
+			// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+			Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "division Det");
+		}
+
+
+
+		output.Append("[");
+		for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+			//output.Append(Strings.Chr(34) + pDataset.Tables(0).Rows(i)("TicketNumber").ToString() + Strings.Chr(34));
+            output.Append("" + (char)34 + pDataset.Tables[0].Rows[i]["TicketNumber"].ToString() + "" + (char)34);
+			if (i != (pDataset.Tables[0].Rows.Count - 1)) {
+				output.Append(",");
+			}
+		}
+		output.Append("];");
+		return output.ToString();
+	}
+
+	protected void btnSubmit_Click(object sender, EventArgs e)
+	{
+		string strsql = "";
+		DataSet pDataset = new DataSet();
+		 CUSERDetails objCUSERDetails = new CUSERDetails();
+		if (!string.IsNullOrEmpty(string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()))) {
+			if (string.IsNullOrEmpty(txtMeterNumber.Text)) {
+				ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Meter Number');", true);
+				return;
+			}
+			if (string.IsNullOrEmpty((txtMeterInstalledDate.Text))) {
+				ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Valid Meter Installed Date');", true);
+				return;
+			}
+			//If IsDate(txtMeterSanctionedDate.Text) Then
+			//    ScriptManager.RegisterStartupScript(Me, [GetType](), "showalert", "alert('Enter Valid Meter Sanctioned Date');", True)
+			//    Exit Sub
+			//End If
+			if (string.IsNullOrEmpty(string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()))) {
+				ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Ticket Number');", true);
+				return;
+			}
+			if (string.IsNullOrEmpty(txtKWH.Text)) {
+				ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Valid Meter Initial Reading');", true);
+				return;
+			}
+			if (string.IsNullOrEmpty(txtMF.Text)) {
+				ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Valid Multiplication Factor');", true);
+				return;
+			}
+			m_db = new DBManager(DataProvider.Oracle);
+			 m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+			m_db.Open();
+			pDataset = m_db.ExecuteDataSet(CommandType.Text, "SELECT * FROM tbl_meter  where  TicketNumber='" + string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()) + "' ");
+
+			if (pDataset == null) {
+				m_db.Close();
+				m_db.Dispose();
+				// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+				Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + " Det");
+			}
+            objCUSERDetails = (CUSERDetails)Session["sesuUserDetails"];
+			if (string.IsNullOrEmpty(txtKVAH.Text)) {
+				txtKVAH.Text = "0.00";
+			}
+			if (string.IsNullOrEmpty(txtKVARH.Text)) {
+				txtKVARH.Text = "0.00";
+			}
+			if (string.IsNullOrEmpty(txtCTR.Text)) {
+				txtCTR.Text = "0.00";
+			}
+			if (string.IsNullOrEmpty(txtPTR.Text)) {
+				txtPTR.Text = "0.00";
+			}
+			if (string.IsNullOrEmpty(txtECTR.Text)) {
+				txtECTR.Text = "0.00";
+			}
+			if (string.IsNullOrEmpty(txtEPTR.Text)) {
+				txtEPTR.Text = "0.00";
+			}
+			if (string.IsNullOrEmpty(txtMeterRatio.Text)) {
+				txtMeterRatio.Text = "0.00";
+			}
+
+			if (pDataset.Tables[0].Rows.Count > 0) {
+				objCUSERDetails = (CUSERDetails)Session["sesuUserDetails"];
+				strsql = "update tbl_meter set ";
+				strsql += "DeviceBrandType='" + cmbMeterType.Text + "',";
+				strsql += "ManufacturerName='" + cmbManufacturerName.Text + "',";
+				strsql += "MeterOwner='" + cmbMeterOwnerShip.Text + "',";
+				strsql += "MFNum='" + txtMF.Text + "',";
+				strsql += "MIG_IR='" + txtKWH.Text + "',";
+				strsql += "MigDevUnMetered='" + cmbMetered.Text + "',";
+				strsql += "Phase='" + cmbPhase.Text + "',";
+				strsql += "MeterDeviceSerialNumber='" + txtMeterNumber.Text + "',";
+				strsql += "MeterInstalledDate='" + txtMeterInstalledDate.Text + "',";
+                strsql += "ModifiedBy='" + objCUSERDetails.strUserName + "',";
+				strsql += "ModifiedDateTime=Now(),";
+				strsql += "KVAH='" + txtKVAH.Text + "',";
+				strsql += "KVARH='" + txtKVARH.Text + "',";
+				strsql += "CTR='" + txtCTR.Text + "',";
+				strsql += "PTR='" + txtPTR.Text + "',";
+				strsql += "ECTR='" + txtECTR.Text + "',";
+				strsql += "EPTR='" + txtEPTR.Text + "',";
+				strsql += "MeterRatio='" + txtMeterRatio.Text + "',";
+				strsql += "BILLBASIS='" + cmbBillBasis.Text + "',";
+				strsql += "OldConsumerNumber='" + txtOldConsumerNumber.Text + "',";
+				strsql += "MeterDigits='" + cmbMeterDigits.Text + "' where TicketNumber='" + string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()) + "'";
+				m_db.ExecuteNonQuery(CommandType.Text, strsql);
+
+			} else {
+				objCUSERDetails = (CUSERDetails)Session["sesuUserDetails"];
+
+				strsql = "INSERT INTO tbl_meter(TicketNumber,DeviceBrand  ,DeviceBrandType,ManufacturerName,MeterOwner,MFNum  ,MIG_IR  ,MigDevUnMetered,Phase,MeterDeviceSerialNumber,MeterInstalledDate  ,Createdby  ,CreatedDateTime      ,KVAH  ,KVARH  ,CTR  ,PTR  ,ECTR  ,EPTR  ,MeterRatio,BILLBASIS,MeterDigits,OldConsumerNumber) VALUES (  ";
+				strsql += "'" + string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()) + "',";
+				strsql += "'" + cmbManufacturerName.Text + "',";
+				strsql += "'" + cmbMeterType.Text + "',";
+				strsql += "'" + cmbManufacturerName.Text + "',";
+				strsql += "'" + cmbMeterOwnerShip.Text + "',";
+				strsql += "'" + txtMF.Text + "',";
+				strsql += "'" + txtKWH.Text + "',";
+				strsql += "'" + cmbMetered.Text + "',";
+				strsql += "'" + cmbPhase.Text + "',";
+				strsql += "'" + txtMeterNumber.Text + "',";
+				strsql += "'" + txtMeterInstalledDate.Text + "',";
+				strsql += "'" + objCUSERDetails.strUserName + "',";
+				strsql += "Now(),";
+				strsql += "'" + txtKVAH.Text + "',";
+				strsql += "'" + txtKVARH.Text + "',";
+				strsql += "'" + txtCTR.Text + "',";
+				strsql += "'" + txtPTR.Text + "',";
+				strsql += "'" + txtECTR.Text + "',";
+				strsql += "'" + txtEPTR.Text + "',";
+				strsql += "'" + txtMeterRatio.Text + "',";
+				strsql += "'" + cmbBillBasis.Text + "',";
+				strsql += "'" + cmbMeterDigits.Text + "','" + txtOldConsumerNumber.Text + "')";
+				m_db.ExecuteNonQuery(CommandType.Text, strsql);
+			}
+			ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Meter Record Saved Successfully');", true);
+			strsql = "";
+			strsql += "UPDATE tbl_ticketmaster ";
+			strsql += "SET";
+			strsql += "   ApplicationStatus = 'Meter Installed' ";
+			strsql += "  WHERE TicketNumber = '" + string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()) + "'";
+
+			m_db.ExecuteNonQuery(CommandType.Text, strsql);
+
+			m_db.Close();
+			m_db.Dispose();
+		}
+	}
+
+
+
+	protected void btnView_Click(object sender, EventArgs e)
+	{
+		if (!string.IsNullOrEmpty(string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()) )){
+			DataSet pDataset = new DataSet();
+			m_db = new DBManager(DataProvider.Oracle);
+			 m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+			m_db.Open();
+			pDataset = m_db.ExecuteDataSet(CommandType.Text, "SELECT A.Phase,A.Mobile_number,A.TicketNumber, A.NewFirstName, A.OldBuildingCompliment,A.sec_code,A.sub_div_code,A.div_code,C.sec_name,D.sub_div_name,E.div_name FROM tbl_ticketmaster A,tbl_section C,tbl_sub_division D,tbl_division E where  A.TicketNumber='" + string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()) + "' and A.sec_code = C.sec_code and A.sub_div_code = D.sub_div_code and A.div_code = E.division_code  ");
+
+			if (pDataset == null) {
+				m_db.Close();
+				m_db.Dispose();
+				// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+				Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + " Det");
+			}
+
+
+			if (pDataset.Tables[0].Rows.Count > 0) {
+				txtaddress.Text = pDataset.Tables[0].Rows[0]["OldBuildingCompliment"].ToString();
+				txtConsumerName.Text = pDataset.Tables[0].Rows[0]["NewFirstName"].ToString();
+				txtDIV_name.Text = pDataset.Tables[0].Rows[0]["div_name"].ToString();
+				txtDIV_code.Text = pDataset.Tables[0].Rows[0]["div_code"].ToString();
+				txtsubdiv_code.Text = pDataset.Tables[0].Rows[0]["sub_div_code"].ToString();
+				txtSubDiv_name.Text = pDataset.Tables[0].Rows[0]["sub_div_name"].ToString();
+				txtsec_code.Text = pDataset.Tables[0].Rows[0]["sec_code"].ToString();
+				txtSection_name.Text = pDataset.Tables[0].Rows[0]["sec_name"].ToString();
+				m_consnumber = pDataset.Tables[0].Rows[0]["Mobile_number"].ToString();
+				cmbPhase.Text = pDataset.Tables[0].Rows[0]["Phase"].ToString();
+				cmbMeterType.Enabled = true;
+			} else {
+				txtaddress.Text = "";
+				// pDataset.Tables[0].Rows[0]["OldBuildingCompliment")
+				txtConsumerName.Text = "";
+				//pDataset.Tables[0].Rows[0]["NewFirstName")
+				txtDIV_name.Text = "";
+				// pDataset.Tables[0].Rows[0]["div_name")
+				txtDIV_code.Text = "";
+				//pDataset.Tables[0].Rows[0]["div_code")
+				txtsubdiv_code.Text = "";
+				//pDataset.Tables[0].Rows[0]["sub_div_code")
+				txtSubDiv_name.Text = "";
+				//pDataset.Tables[0].Rows[0]["sub_div_name")
+				txtsec_code.Text = "";
+				//pDataset.Tables[0].Rows[0]["sec_code")
+				txtSection_name.Text = "";
+				// pDataset.Tables[0].Rows[0]["sec_name")
+				// m_consnumber = pDataset.Tables[0].Rows[0]["Mobile_number")
+				ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Ticket Number Not exists');", true);
+
+			}
+
+			pDataset = m_db.ExecuteDataSet(CommandType.Text, "SELECT * FROM tbl_meter  where  TicketNumber='" + string.Format("{0}", Request.Form["cmbTicketNumber"].ToString())+ "' ");
+
+			if (pDataset == null) {
+				m_db.Close();
+				m_db.Dispose();
+				// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+				Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + " Det");
+			}
+
+
+			if (pDataset.Tables[0].Rows.Count > 0) {
+				txtMeterNumber.Text = pDataset.Tables[0].Rows[0]["MeterDeviceSerialNumber"].ToString();
+				cmbManufacturerName.Text = pDataset.Tables[0].Rows[0]["DeviceBrand"].ToString();
+				cmbMeterType.Text = pDataset.Tables[0].Rows[0]["DeviceBrandType"].ToString();
+				cmbMeterDigits.Text = pDataset.Tables[0].Rows[0]["MeterDigits"].ToString();
+				cmbMeterOwnerShip.Text = pDataset.Tables[0].Rows[0]["MeterOwner"].ToString();
+				txtMeterInstalledDate.Text = pDataset.Tables[0].Rows[0]["MeterInstalledDate"].ToString();
+
+				txtKWH.Text = pDataset.Tables[0].Rows[0]["MIG_IR"].ToString();
+
+
+				txtKVAH.Text = pDataset.Tables[0].Rows[0]["KVAH"].ToString();
+				txtKVARH.Text = pDataset.Tables[0].Rows[0]["KVARH"].ToString();
+				txtCTR.Text = pDataset.Tables[0].Rows[0]["CTR"].ToString();
+				txtECTR.Text = pDataset.Tables[0].Rows[0]["ECTR"].ToString();
+				txtPTR.Text = pDataset.Tables[0].Rows[0]["PTR"].ToString();
+				txtEPTR.Text = pDataset.Tables[0].Rows[0]["EPTR"].ToString();
+				txtMeterRatio.Text = pDataset.Tables[0].Rows[0]["MeterRatio"].ToString();
+				cmbBillBasis.Text = pDataset.Tables[0].Rows[0]["BILLBASIS"].ToString();
+				cmbMeterDigits.Text = pDataset.Tables[0].Rows[0]["MeterDigits"].ToString();
+                txtOldConsumerNumber.Text = pDataset.Tables[0].Rows[0]["OldConsumerNumber"].ToString();
+			} else {
+				if (cmbPhase.SelectedIndex == 0) {
+					cmbMeterType.SelectedIndex = 0;
+					cmbMeterType.Enabled = false;
+				}
+				txtMeterNumber.Text = "";
+				//pDataset.Tables[0].Rows[0]["MeterDeviceSerialNumber")
+
+				txtMeterInstalledDate.Text = "";
+				// pDataset.Tables[0].Rows[0]["MeterInstalledDate")
+
+				txtKWH.Text = "";
+				// pDataset.Tables[0].Rows[0]["MIG_IR")
+				txtOldConsumerNumber.Text = "";
+
+				txtKVAH.Text = "0.00";
+				//pDataset.Tables[0].Rows[0]["KVAH")
+				txtKVARH.Text = "0.00";
+				//pDataset.Tables[0].Rows[0]["KVARH")
+				txtCTR.Text = "0.00";
+				//pDataset.Tables[0].Rows[0]["CTR")
+				txtECTR.Text = "0.00";
+				//pDataset.Tables[0].Rows[0]["ECTR")
+				txtPTR.Text = "0.00";
+				//pDataset.Tables[0].Rows[0]["PTR")
+				txtEPTR.Text = "0.00";
+				//pDataset.Tables[0].Rows[0]["EPTR")
+				txtMeterRatio.Text = "0.00";
+				// pDataset.Tables[0].Rows[0]["MeterRatio")
+
+			}
+			m_db.Close();
+			pDataset.Dispose();
+			m_db.Dispose();
+		}
+	}
+
+
+	private void NewMeter_PreRender(object sender, EventArgs e)
+	{
+		//If ViewState("postids").ToString() <> Session["postid"].ToString() Then
+
+		//    IsPageRefresh = True
+		//Else
+		//    Session["postid"] = System.Guid.NewGuid().ToString()
+		//    ViewState("postids") = Session["postid"].ToString()
+		//End If
+	}
+
+	protected void cmbMeterType_SelectedIndexChanged(object sender, EventArgs e)
+	{
+		if (cmbMeterType.SelectedIndex == 0) {
+			txtKVAH.Enabled = false;
+			txtKVARH.Enabled = false;
+			txtCTR.Enabled = false;
+			txtECTR.Enabled = false;
+			txtPTR.Enabled = false;
+			txtEPTR.Enabled = false;
+			txtMeterRatio.Enabled = false;
+
+		} else if (cmbMeterType.SelectedIndex == 1) {
+			txtKVAH.Enabled = true;
+			txtKVARH.Enabled = true;
+			txtCTR.Enabled = true;
+			txtECTR.Enabled = false;
+			txtPTR.Enabled = false;
+			txtEPTR.Enabled = false;
+			txtMeterRatio.Enabled = true;
+		} else {
+			txtKVAH.Enabled = true;
+			txtKVARH.Enabled = true;
+			txtCTR.Enabled = true;
+			txtECTR.Enabled = true;
+			txtPTR.Enabled = true;
+			txtEPTR.Enabled = true;
+			txtMeterRatio.Enabled = true;
+		}
+	}
+
+	protected void cmbPhase_SelectedIndexChanged(object sender, EventArgs e)
+	{
+		if (cmbPhase.SelectedIndex == 0) {
+			txtMF.Enabled = false;
+			txtMF.Text = "1";
+		}
+	}
+	
+}
+
+

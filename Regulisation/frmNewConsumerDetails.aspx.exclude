@@ -1,0 +1,632 @@
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Default.master" AutoEventWireup="true" CodeFile="frmNewConsumerDetails.aspx.cs" Inherits="Regulisation_frmNewConsumerDetails" %>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+    <script type="text/javascript">
+        function uservalidation() {
+            document.getElementById('hidden1').value = 2;
+            if (document.getElementById("txtTicketNumber").value == "") {
+                alert("Enter Ticket Number..")
+                document.getElementById("txtTicketNumber").focus()
+                return false;
+            }
+            else if (document.getElementById("txtSectionName").value == 0) {
+                alert("Select Section")
+                document.getElementById("txtSectionName").focus()
+                return false;
+            }
+            else if (document.getElementById("txtConsumerName").value == "") {
+                alert("Enter Consumer Name..")
+                document.getElementById("txtConsumerName").focus()
+                return false;
+            }
+            else if (document.getElementById("txtconsMobile").value == "") {
+                alert("Enter Consumer Mobile Number")
+                document.getElementById("txtconsMobile").focus()
+                return false;
+            }
+            else if (document.getElementById("txtFatherName").value == "") {
+                alert("Enter Consumer Father/AuthorisedName")
+                document.getElementById("txtFatherName").focus()
+                return false;
+            }
+            else if (document.getElementById("txtconsMailID").value == "") {
+                alert("Enter Consumer Father/AuthorisedName")
+                document.getElementById("txtconsMailID").focus()
+                return false;
+            }
+
+
+            return true;
+        }
+        function numbersonly(e) {
+            var unicode = e.charCode ? e.charCode : e.keyCode;
+            if
+(unicode != 8) {
+                if (unicode < 48 || unicode > 57)
+                    return false;
+            }
+        }
+        function datevalidation() {
+            if (document.getElementById("txtday").value.length > 0) {
+                if (document.getElementById("txtday").value > 31) {
+                    alert("Day Should Not greater than 31 days")
+                    document.getElementById("txtday").focus()
+                    return false;
+                }
+            }
+            return true;
+        }
+        function dis() {
+
+            if (document.getElementById('hidden1').value == 1 || document.getElementById('hidden1').value == "") {
+                var s = window.location.href
+                var active = s.split('=')
+                var chk = active[active.length - 1];
+
+                if (chk == 0) {
+                    var Elements = document.getElementsByTagName('input');
+                    for (i = 0; i < Elements.length; i++) {
+                        Elements[i].disabled = true;
+
+                    }
+                    document.getElementById("cmbqtn").disabled = true;
+                    var Elements_txtarea = document.getElementsByTagName('textarea');
+                    for (i = 0; i < Elements_txtarea.length; i++) {
+                        Elements_txtarea[i].disabled = true;
+
+                    }
+
+
+                    var Status = confirm("This User id Deactived Do U Want to Activate")
+                    if (Status == true) {
+                        var Elements = document.getElementsByTagName('input');
+                        for (i = 0; i < Elements.length; i++) {
+                            if (Elements[i].id != "txtusername")
+                                Elements[i].disabled = false;
+
+                        }
+                        document.getElementById("cmbqtn").disabled = false;
+                        var Elements_txtarea = document.getElementsByTagName('textarea');
+                        for (i = 0; i < Elements_txtarea.length; i++) {
+                            Elements_txtarea[i].disabled = false;
+
+                        }
+                    }
+                }
+                else if (Status == false) {
+                    window.close()
+                }
+            }
+        }
+        function numbersonly(e) {
+            var unicode = e.charCode ? e.charCode : e.keyCode;
+            if 
+(unicode != 8) {
+                if (unicode < 48 || unicode > 57)
+                    return false;
+            }
+        }
+
+        function validateEmail(emailField) {
+            var reg = /^([A-Za-z0-9_\-\.])+\@([A-Za-z0-9_\-\.])+\.([A-Za-z]{2,4})$/;
+
+            if (reg.test(emailField.value) == false) {
+                alert('Invalid Email Address');
+                return false;
+            }
+
+            return true;
+
+        }
+    </script>
+
+
+
+    <style type="text/css">
+        .ui-autocomplete {
+            max-height: 100px;
+            overflow-y: auto;
+            /* prevent horizontal scrollbar */
+            overflow-x: hidden;
+        }
+        /* IE 6 doesn't support max-height
+   * we use height instead, but this forces the menu to always be this tall
+   */
+        * html .ui-autocomplete {
+            height: 100px;
+        }
+
+        .autocomplete_completionListElement {
+            margin: 0px!important;
+            background-color: inherit;
+            color: windowtext;
+            border: buttonshadow;
+            border-width: 1px;
+            border-style: solid;
+            cursor: 'default';
+            overflow: auto;
+            height: 200px;
+            font-family: Tahoma;
+            font-size: small;
+            text-align: left;
+            list-style-type: none;
+        }
+
+        /* AutoComplete highlighted item */
+
+        .autocomplete_highlightedListItem {
+            background-color: #ffff99;
+            color: black;
+            padding: 1px;
+        }
+
+        body {
+            font-family: "Trebuchet MS", "Helvetica", "Arial", "Verdana", "sans-serif";
+            font-size: 50.5%;
+        }
+
+        /* AutoComplete item */
+
+        .autocomplete_listItem {
+            background-color: window;
+            color: windowtext;
+            padding: 1px;
+        }
+
+        .ui-autocomplete {
+            max-height: 100px;
+            overflow-y: auto;
+            /* prevent horizontal scrollbar */
+            overflow-x: hidden;
+        }
+        /* IE 6 doesn't support max-height
+   * we use height instead, but this forces the menu to always be this tall
+   */
+        * html .ui-autocomplete {
+            height: 100px;
+        }
+    </style>
+    <link rel="stylesheet" href="css/jquery-ui.css" />
+
+    <script src="js/jquery-1.8.3.js" type="text/javascript" language="javascript"></script>
+
+    <script src="js/jquery-ui.js" type="text/javascript" language="javascript"></script>
+
+    <script type="text/javascript" language="javascript">
+        function LoadList()
+        {        
+            var ds=null;
+            ds = <%= listFilter%>;
+            $( "#cmbTicketNumber" ).autocomplete({
+                source: ds
+            });
+        }
+    </script>
+     <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="../code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+    <script src="../Scripts/jquery.dynDateTime.min.js" type="text/javascript"></script>
+    <script src="../Scripts/calendar-en.min.js" type="text/javascript"></script>
+    <link href="../Styles/calendar-blue.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('[id$=txtdate]').dynDateTime({
+                showsTime: true,
+                ifFormat: "%d-%m-%Y",
+                daFormat: "%l;%M %p, %e %m,  %Y",
+                align: "BR",
+                electric: false,
+                singleClick: true,
+                displayArea: ".siblings('.dtcDisplayArea')",
+                button: ".next()"
+            });           
+        });
+
+    </script>
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
+
+    <table width="710px" cellspacing="0" cellpadding="0" class="table" align="center">
+        <tr>
+            <td colspan="2" class="Header">&nbsp;&nbsp;Consumer Details</td>
+        </tr>
+
+        <tr>
+
+            <td align="left" height="30px">
+                <img src="../Images/Submit.jpg" alt="roll" width="16" height="16" align="center" style="padding-left: 5px">
+                <asp:LinkButton ID="btnsave" runat="server" Text="Save" CssClass="button" OnClientClick="return uservalidation()" />
+            </td>
+            <td align="right">
+                <asp:LinkButton ID="btncancel" runat="server" Text="Cancel" CssClass="button" OnClientClick="javascript: window.close();" />
+                <img src="../Images/Cancel.jpg" alt="roll" width="16" height="16" align="center" style="padding-right: 5px">
+            </td>
+        </tr>
+
+        <tr>
+
+            <td width="50%">
+                <asp:Panel ID="panel1" runat="server" CssClass="panel" GroupingText="Ticket Details">
+                    <table cellspacing="0" width="100%" cellpadding="0" align="center">
+                        <tr>
+                            <td class="Labeltext" width="150px">
+                                <span style="color: Red">&nbsp;</span>Ticket Number:<span style="color: Red">*</span>
+                            </td>
+                            <td align="left" class="column">
+                                <%--<INPUT id="cmbTicketNumber" runat="server" class="Textbox" />--%>
+                                <asp:TextBox ID="cmbTicketNumber" runat="server" class="Textbox" Width="110px"></asp:TextBox>
+                                &nbsp;&nbsp;<asp:Button ID="btnView" runat="server" Text="View" Width="45px" CssClass="buttons" />
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Customer Type :<span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:DropDownList ID="cmbCustomerType" runat="server"
+                                    TabIndex="101" Width="129px" CssClass="combobox">
+                                    <asp:ListItem>Person</asp:ListItem>
+                                    <asp:ListItem>Organization</asp:ListItem>
+                                </asp:DropDownList>
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Consumer/Org Name :
+
+                     <span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtConsumerName" runat="server"
+                                    TabIndex="102" class="Textbox"></asp:TextBox>
+
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Father/Authorised Name :<span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtFatherName" runat="server" TabIndex="103" class="Textbox"></asp:TextBox>
+
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Registered Mobile No : <span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtconsMobile" TabIndex="104" runat="server"
+                                    onkeypress="return numbersonly(event)" class="Textbox"></asp:TextBox>
+
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Consumer Mail ID :</td>
+
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtconsMailID" runat="server" CssClass="Textbox" MaxLength="50" onblur="javascript:return validateEmail(this);" TabIndex="105" ToolTip="Enter Mail ID"></asp:TextBox>
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Load type :<span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:DropDownList ID="cmbLoadType" runat="server" TabIndex="106"
+                                    CssClass="combobox" Width="130px">
+                                    <asp:ListItem Selected="True">Single Phase</asp:ListItem>
+                                    <asp:ListItem>LT Three Phase Domestic</asp:ListItem>
+                                    <asp:ListItem>LT Three Phase Commercial</asp:ListItem>
+                                    <asp:ListItem>HT</asp:ListItem>
+                                </asp:DropDownList>
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Supply Level :<span style="color: Red">*</span></td>
+
+                            <td align="left" class="column">
+                                <asp:DropDownList ID="cmbSupplyLevel" runat="server"
+                                    TabIndex="107" CssClass="combobox" Width="125px">
+                                    <asp:ListItem Selected="True" Value="0.230">0.230</asp:ListItem>
+                                    <asp:ListItem>0.440</asp:ListItem>
+                                    <asp:ListItem>11</asp:ListItem>
+                                    <asp:ListItem>33</asp:ListItem>
+                                    <asp:ListItem>132</asp:ListItem>
+                                </asp:DropDownList>
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Metering :<span style="color: Red">*</span></td>
+
+                            <td align="left" class="column">
+                                <asp:DropDownList ID="cmbMetering" runat="server" TabIndex="107" CssClass="combobox">
+                                    <asp:ListItem>None</asp:ListItem>
+                                    <asp:ListItem>LV</asp:ListItem>
+                                    <asp:ListItem>HV</asp:ListItem>
+                                </asp:DropDownList>
+                            </td>
+
+                        </tr>
+
+                    </table>
+                </asp:Panel>
+            </td>
+            <td width="50%">
+                <asp:Panel ID="panel2" runat="server" CssClass="panel" GroupingText="Consumer Details">
+                    <table cellspacing="0" width="98%" cellpadding="0" align="center">
+                        <tr>
+                            <td class="Labeltext" width="150px"><span style="color: Red">&nbsp;</span>Ownership :<span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:DropDownList ID="cmbOwnership" runat="server" TabIndex="108" CssClass="combobox" Width="130px">
+                                    <asp:ListItem>None</asp:ListItem>
+                                    <asp:ListItem Selected="True">Owned</asp:ListItem>
+                                    <asp:ListItem>Rented</asp:ListItem>
+                                    <asp:ListItem>Company provided</asp:ListItem>
+                                    <asp:ListItem>Govt.</asp:ListItem>
+                                    <asp:ListItem>Parental</asp:ListItem>
+                                    <asp:ListItem>CESU owned</asp:ListItem>
+                                </asp:DropDownList>
+                            </td>
+
+
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Load Required :<span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtLoadRequired" runat="server" MaxLength="5"
+                                    onblur="javascript:return datevalidation();" TabIndex="110" ToolTip="Enter Day" Width="75px" CssClass="Textbox">
+
+                                </asp:TextBox>
+                                <asp:DropDownList ID="cmbLoadUnits" runat="server" TabIndex="111" CssClass="combobox">
+                                    <asp:ListItem Selected="True">KW</asp:ListItem>
+                                    <asp:ListItem>HP</asp:ListItem>
+                                    <asp:ListItem>KVA</asp:ListItem>
+                                </asp:DropDownList>
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Customer Group :<span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:DropDownList ID="cmbCategory" runat="server" TabIndex="109" CssClass="combobox" Width="130px">
+                                </asp:DropDownList>
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Connection type :<span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:DropDownList ID="cmbConnectionType" runat="server" CssClass="combobox"
+                                    Width="130px" TabIndex="112">
+                                    <asp:ListItem>Permanent</asp:ListItem>
+                                    <asp:ListItem>Temporary Regular</asp:ListItem>
+                                    <asp:ListItem>Temporary Short Term</asp:ListItem>
+                                </asp:DropDownList>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Division Name :<span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:DropDownList ID="cmbDivision" runat="server"
+                                    CssClass="combobox" Width="130px" AutoPostBack="True" TabIndex="113">
+                                </asp:DropDownList>
+
+                            </td>
+
+                        </tr>
+
+                        <tr>
+                            <td class="Labeltext">Sub Division Name :<span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:DropDownList ID="cmbSubdivision" runat="server" AutoPostBack="True" CssClass="combobox"
+                                    Width="130px" TabIndex="114">
+                                </asp:DropDownList>
+
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Section Name :<span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:DropDownList ID="cmbSection" runat="server" CssClass="combobox"
+                                    AutoPostBack="True" TabIndex="115" Width="130px">
+                                </asp:DropDownList>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">PAN Number :<span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtPAN" runat="server" MaxLength="11" TabIndex="116" CssClass="Textbox"></asp:TextBox>
+
+                            </td>
+
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Application Number :<span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtApplicationNumber" runat="server" MaxLength="12" TabIndex="105" CssClass="Textbox"></asp:TextBox>
+                            </td>
+
+                        </tr>
+                    </table>
+                </asp:Panel>
+            </td>
+
+        </tr>
+
+        <tr>
+            <td>
+                <asp:Panel ID="panel3" runat="server" CssClass="panel" GroupingText="Current Address">
+                    <table cellspacing="0" width="98%" cellpadding="0" align="center">
+                        <tr>
+                            <td class="Labeltext" width="150px">Plot/House Number:<span style="color: Red">*</span>
+
+                            </td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtPlot1" runat="server" CssClass="Textbox" MaxLength="35" TabIndex="117"></asp:TextBox></td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Building Name:<span style="color: Red">*</span>
+
+
+
+                            </td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtBuilding1" runat="server" CssClass="Textbox" MaxLength="35" TabIndex="118"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Street :<span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtStreet1" runat="server" TabIndex="119" CssClass="Textbox" MaxLength="35"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">City:<span style="color: Red">*</span>
+                            </td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtCity1" runat="server" TabIndex="120" CssClass="Textbox" MaxLength="35"></asp:TextBox>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">District:<span style="color: Red">*</span>
+                            </td>
+                            <td align="left" class="column">
+
+                                <asp:TextBox ID="txtDistrict1" runat="server" CssClass="Textbox" MaxLength="35" TabIndex="120"></asp:TextBox>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Tehsil :<span style="color: Red">*</span>
+                            </td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtTehsil1" runat="server" CssClass="Textbox" MaxLength="35" TabIndex="120"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Block:<span style="color: Red">*</span>
+                            </td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtBlock1" runat="server" CssClass="Textbox" MaxLength="35" TabIndex="120"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">GP/NAC/MC:<span style="color: Red">*</span>
+                            </td>
+                            <td align="left">
+                                <asp:TextBox ID="txtGP1" runat="server" CssClass="Textbox" MaxLength="35" TabIndex="120"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Village/Ward:<span style="color: Red">*</span></td>
+                            <td align="left">
+                                <asp:TextBox ID="txtVillage1" runat="server" CssClass="Textbox" MaxLength="35"
+                                    onblur="javascript:return datevalidation();" TabIndex="125" ToolTip="Enter Day"></asp:TextBox>
+
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <asp:CheckBox ID="chk_addr" runat="server" CssClass="checkbox"
+                                    Text="Current Address is Same Billing Address" AutoPostBack="True" />
+
+                            </td>
+
+                        </tr>
+                    </table>
+                </asp:Panel>
+            </td>
+            <td>
+                <asp:Panel ID="panel4" runat="server" CssClass="panel" GroupingText="Billing Address">
+                    <table cellspacing="0" width="98%" cellpadding="0" align="center">
+                        <tr>
+                            <td class="Labeltext" width="150px">Plot/House Number:<span style="color: Red">*</span>
+
+                            </td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtPlot" runat="server" CssClass="Textbox" MaxLength="35" TabIndex="126"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Building Name:<span style="color: Red">*</span>
+                            </td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtBuilding" runat="server" TabIndex="127" CssClass="Textbox" MaxLength="35"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext" class="column">Street :<span style="color: Red">*</span>
+                            </td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtStreet" runat="server" TabIndex="128" CssClass="Textbox" MaxLength="35"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext" class="column">City:<span style="color: Red">*</span>
+                            </td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtCity" runat="server" TabIndex="129" CssClass="Textbox" MaxLength="35"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">District:<span style="color: Red">*</span>
+                            </td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtDistrict" runat="server" TabIndex="120" CssClass="Textbox" MaxLength="35"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Tehsil :<span style="color: Red">*</span>
+                            </td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtTehsil" runat="server" TabIndex="120" CssClass="Textbox" MaxLength="35"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Block:<span style="color: Red">*</span>
+                            </td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtBlock" runat="server" TabIndex="120" CssClass="Textbox" MaxLength="35"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">GP/NAC/MC:<span style="color: Red">*</span>
+                            </td>
+                            <td class="column" align="left">
+                                <asp:TextBox ID="txtGP" runat="server" TabIndex="120" CssClass="Textbox" MaxLength="35"></asp:TextBox>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="Labeltext">Village/Ward:<span style="color: Red">*</span></td>
+                            <td align="left" class="column">
+                                <asp:TextBox ID="txtVillage" runat="server" ToolTip="Enter Day" onblur="javascript:return datevalidation();"
+                                    MaxLength="35" CssClass="Textbox" TabIndex="134"></asp:TextBox>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">&nbsp;</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">&nbsp;</td>
+                        </tr>
+                    </table>
+                </asp:Panel>
+            </td>
+
+        </tr>
+        <tr>
+            <td colspan="2"><asp:DropDownList ID="cmbDivisioncode" runat="server"></asp:DropDownList>
+                <asp:DropDownList ID="cmbSubdivisioncode" runat="server" ></asp:DropDownList>
+                <asp:DropDownList ID="cmbSectioncode" runat="server" ></asp:DropDownList>
+            </td>
+        </tr>
+        
+    </table>
+
+</asp:Content>
+

@@ -1,0 +1,63 @@
+﻿body {
+ 
+	margin: 0px;
+    background: url('images/LoginBG.gif') repeat-x;
+    height: 301px;
+}
+
+#outerdiv{
+position:relative;
+text-align:center; /* for IE */
+}
+.topdiv {
+  position: relative;
+  text-align: center;
+  height: 125px;
+  margin: 0px;
+  padding: 0px;
+  overflow: hidden;
+  
+}
+
+
+
+.logo1, .logo2 {
+  position: relative;
+  margin: 0px;
+  padding-top:15px;
+}
+
+.logo1 {
+  float: left;
+}
+
+.logo2 {
+  float: right;
+  background:url('images/FEDCO_LOGO.png ' )top center;
+}
+
+.divtext {
+  position: absolute;
+  text-align: center;
+  top: 14px;
+  left: 25%;
+  height: 70px;
+  font-weight: bold;
+  font-size: 25pt;
+  color: #0055aa;
+}
+
+.trail, .username {
+  position: relative;
+  top: 75px;
+  margin: 0px;
+  padding: 0px;
+}
+
+.trail {
+  float: left;
+}
+
+.username {
+  float: right;
+}

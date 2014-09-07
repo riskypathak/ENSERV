@@ -1,0 +1,234 @@
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Default.master" AutoEventWireup="true" CodeFile="frmBillingAddressChange.aspx.cs" Inherits="Regulisation_frmBillingAddressChange" %>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+     <link rel="stylesheet" href="../resources/demos/style.css">
+    <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+    <script src="/Scripts/jquery.dynDateTime.min.js" type="text/javascript"></script>
+    <script src="../Scripts/calendar-en.min.js" type="text/javascript"></script>
+    <link href="../Styles/calendar-blue.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('[id$=txtdate]').dynDateTime({
+                showsTime: true,
+                ifFormat: "%d-%m-%Y",
+                daFormat: "%l;%M %p, %e %m,  %Y",
+                align: "BR",
+                electric: false,
+                singleClick: true,
+                displayArea: ".siblings('.dtcDisplayArea')",
+                button: ".next()"
+            });
+        });
+
+    </script>
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
+    <table width="650px" height="100%" class="table" align="center" cellpadding="0" cellspacing="0">
+        <tr>
+            <td class="Headers" colspan="2">Billing Address Change</td>
+        </tr>
+
+
+        <tr>
+            <td width="20%" class="Labeltext" style="padding-top: 6px;">&nbsp; &nbsp;Customer No:</td>
+            <td align="left" class="column" style="padding-top: 6px" width="80%">
+                <asp:TextBox ID="txtcustomerno" runat="server" CssClass="Textbox"></asp:TextBox>
+                &nbsp;<asp:Button ID="btngetdata" runat="server" Text="Get Data" CssClass="buttons" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <hr />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" align="left">
+                <table class="table" align="center" cellpadding="0" cellspacing="0" width="630px">
+                    <tr>
+                        <td colspan="4" style="font-family: Calibri; font-weight: bold; font-size: 10pt; color: #000099">&nbsp;Application Detail</td>
+                    </tr>
+                    <tr>
+                        <td class="Labeltext" width="22%">Application Date:</td>
+                        <td align="left" width="30%" class="column">
+                            <asp:TextBox ID="txtdate" runat="server" CssClass="Textbox" Width="70px"></asp:TextBox>
+                            &nbsp;<img id="img2" src="../calender.png" __designer:mapid="1910" />
+                        </td>
+                       <td class="Labeltext">CRM Ticket No:</td>
+                        <td align="left" class="column">
+                            <asp:TextBox ID="txtticketno" runat="server" CssClass="Textbox"></asp:TextBox></td> 
+                    </tr>
+                    <tr>
+                        <td class="Labeltext">Appliocation No:</td>
+                        <td align="left" class="column" colspan="3">
+                            <asp:TextBox ID="txtapplicationno" runat="server" CssClass="Textbox"></asp:TextBox>
+                        </td>
+                        
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        <tr style="height: 1px">
+            <td colspan="2" style="height: 7px"></td>
+        </tr>
+        <tr>
+            <td colspan="2" align="left">
+                <table align="center" cellpadding="0" cellspacing="0" class="innertable" width="630px">
+                    <tr>
+                        <td class="Labeltext" width="22%">Supply Type:</td>
+                        <td class="column" width="30%" align="left">
+                            <asp:TextBox ID="txtsupplytype" runat="server" CssClass="Textbox" width="30px"></asp:TextBox>
+                        </td>
+                        <td class="Labeltext" colspan="2" style="font-family: Calibri; font-weight: bold; font-size: 10pt; color: #000099">Address</td>
+
+                    </tr>
+                    <tr>
+                        <td class="Labeltext">Supply Level:</td>
+                        <td align="left" class="column">
+                             <asp:TextBox ID="txtsupplylevel" runat="server" CssClass="Textbox" Width="100px"></asp:TextBox>
+                        </td>
+                        <td class="Labeltext">Role:</td>
+                        <td align="left" class="column">
+                            <asp:DropDownList ID="ddlrole" runat="server" CssClass="combobox">
+                                <asp:ListItem>1</asp:ListItem>
+                            </asp:DropDownList>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="Labeltext">Customer Account:</td>
+                        <td align="left" class="column">
+                            <asp:TextBox ID="txtcustomeraccount" runat="server" CssClass="Textbox" Width="100px"></asp:TextBox>
+                        </td>
+                        <td class="Labeltext">Building Compliment:</td>
+                        <td align="left" class="column">
+                            <asp:TextBox ID="txtbuildingcompliment" runat="server" CssClass="Textbox" Width="160px"></asp:TextBox>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="Labeltext">Connection Id:
+                        </td>
+                        <td align="left" class="column">
+                            <asp:TextBox ID="txtconnectionid" runat="server" CssClass="Textbox" Width="100px"></asp:TextBox>
+                        </td>
+                        <td class="Labeltext" rowspan="3" valign="top">Address:</td>
+                        <td rowspan="3" align="left" class="column">
+                            <asp:TextBox ID="txtaddress" runat="server" CssClass="Textbox" Width="157px" Height="60px" Style="resize:none"></asp:TextBox>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="Labeltext">Application Type</td>
+                        <td><asp:TextBox ID="txtapplicationtype" runat="server" CssClass="Textbox" Width="100px"></asp:TextBox></td>
+                        <td colspan="2"></td>
+                        
+                    </tr>
+                    <tr>
+
+                        <td class="Labeltext">Ownership</td>
+                        <td align="left" class="column">
+                            <asp:TextBox ID="txtownership" runat="server" CssClass="Textbox" Width="100px"></asp:TextBox></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" style="font-family: Calibri; font-weight: bold; font-size: 10pt; color: #000099;padding-top:2px;padding-bottom:2px" class="auto-style1">
+                            &nbsp;&nbsp;Customer Information</td>
+                    </tr>
+                    <tr>
+                        <td class="Labeltext">Customer Name:</td>
+                        <td align="left" class="column">
+                            <asp:TextBox ID="txtcustomername" runat="server" CssClass="Textbox" Width="100px"></asp:TextBox></td>
+                        <td class="Labeltext">Zip/Pastal Code:</td>
+                        <td align="left" class="column">
+                            <asp:DropDownList ID="ddlzipcode" runat="server" CssClass="combobox">
+                                <asp:ListItem>1</asp:ListItem>
+                            </asp:DropDownList></td>
+                    </tr>
+                    <tr>
+                        <td class="Labeltext">Customer Group:</td>
+                        <td align="left" class="column">
+                            <asp:TextBox ID="txtcustomergroup" runat="server" CssClass="Textbox" Width="100px"></asp:TextBox></td>
+                        <td class="Labeltext">Country/Region:</td>
+                        <td align="left" class="column">
+                            <asp:DropDownList ID="ddlcountry" runat="server" CssClass="combobox">
+                                <asp:ListItem>1</asp:ListItem>
+                            </asp:DropDownList></td>
+                    </tr>
+                    <tr>
+                        <td class="Labeltext">Customer Group Name:</td>
+                        <td>
+                            <asp:TextBox ID="txtgroupname" runat="server" CssClass="Textbox" Width="100px"></asp:TextBox></td>
+                        <td class="Labeltext">State or Province:</td>
+                        <td align="left" class="column">
+                            <asp:TextBox ID="txtstate" runat="server" CssClass="Textbox" Width="100px"></asp:TextBox>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="Labeltext">Address</td>
+                        <td rowspan="3" align="left" class="column" valign="top">
+                            <asp:TextBox ID="txtaddress1" runat="server" CssClass="Textbox" Width="157px" Height="60px" Style="resize:none"></asp:TextBox></td>
+
+                        <td class="Labeltext">City:</td>
+                        <td align="left" class="column">
+                            <asp:DropDownList ID="ddlcity" runat="server" CssClass="combobox">
+                                <asp:ListItem>1</asp:ListItem>
+                            </asp:DropDownList></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td class="Labeltext">Block:</td>
+                        <td align="left" class="column">
+                            <asp:DropDownList ID="ddlblock" runat="server" CssClass="combobox">
+                            </asp:DropDownList></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td class="Labeltext">Village/Ward:</td>
+                        <td align="left" class="column">
+                            <asp:DropDownList ID="ddlvillage" runat="server" CssClass="combobox">
+                            </asp:DropDownList></td>
+                    </tr>
+                    <tr>
+                       <td class="Labeltext">Telephone:</td>
+                        <td align="left" class="column" valign="top">
+                            <asp:TextBox ID="txttelephone1" runat="server" CssClass="Textbox" Width="100px"></asp:TextBox></td>
+                        <td class="Labeltext">Telephone:</td>
+                        <td align="left" class="column">
+                            <asp:TextBox ID="txttelephone" runat="server" CssClass="Textbox" Width="100px"></asp:TextBox></td>
+                    </tr>
+                    <tr>
+                        
+                        <td colspan="2"></td>
+                       <td class="Labeltext" rowspan="2">Note:</td>
+                        <td align="left" class="column">
+                            <asp:TextBox ID="txtnote" runat="server" Width="157px" Height="30px" CssClass="Textbox"></asp:TextBox></td>
+                    </tr>
+                    
+                </table>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <hr />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" align="center">
+                <asp:Button ID="btnSubmit" runat="server" Text="Save" Width="60px"
+                    CssClass="buttons" />&nbsp;
+                <asp:Button ID="btnclose" runat="server" Text="Close" Width="60px"
+                    CssClass="buttons" />
+            </td>
+        </tr>
+        <tr>
+
+            <td colspan="2" style="font-family: Calibri; font-size: 9pt; color: #5a0606">&nbsp;&nbsp; Note:-<br />
+                &nbsp;*Application No and Ticket No. are mandatory to proceed.<br />
+
+            </td>
+        </tr>
+    </table>
+</asp:Content>
+

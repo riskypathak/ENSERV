@@ -1,0 +1,86 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+
+public partial class Regulisation_frmNameChange : System.Web.UI.Page
+{
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            btnSubmit.Enabled = false;
+            btnclose.Enabled = false;
+            lblapplicationfor.Visible = false;
+            txtapplicationfor.Visible = false;
+            lblismeter.Visible = false;
+            rblmeterchange.Visible = false;
+            LabelChangeofHeader();
+            Enabledisablecontrol();
+        }
+    }
+    protected void btnSubmit_Click(object sender, EventArgs e)
+    {
+
+    }
+    protected void btngetdata_Click(object sender, EventArgs e)
+    {
+        
+    }
+
+    protected void LabelChangeofHeader()
+    {
+        string value = Request.QueryString["val"];
+       
+            if (value == "le")
+            {
+                lblheader.Text = "Load Enhancement";                
+            }
+            else if (value == "lr")
+            {
+                lblheader.Text = "Load Reduction";                
+            }
+            else if (value == "changeincat")
+            {
+                lblheader.Text = "Change In Category";
+                lblismeter.Visible = true;
+                rblmeterchange.Visible = true;
+            }
+            else if (value == "disconnect")
+            {
+                lblheader.Text = "Dis-Connection";
+               
+            }
+            else if (value == "reconnect")
+            {
+                lblheader.Text = "Re Connection";
+                lblapplicationfor.Visible = true;
+                txtapplicationfor.Visible = true;
+            }
+    }
+    protected void Enabledisablecontrol()
+    {
+        txtsupplytype.Enabled = false;
+        ddlsupplylevel.Enabled = false;
+        txtcustomeraccount.Enabled = false;
+        txtconnectionid.Enabled = false;
+        txtapplicationtype.Enabled = false;
+        txtownership.Enabled = false;
+        txtexisting.Enabled = false;       
+        txtcustomername.Enabled = false;
+        txtcustomergroup.Enabled = false;
+        txtcustomergroupname.Enabled = false;
+        txtaddress.Enabled = false;
+        txttelephone.Enabled = false;
+        txtsection.Enabled = false;        
+        txtdivision.Enabled = false;
+        txtsubdivision.Enabled = false;
+        lblismeter.Visible = false;
+        rblmeterchange.Visible = false;
+        lblapplicationfor.Visible = false;
+        txtapplicationfor.Visible = false;
+    }
+    
+}

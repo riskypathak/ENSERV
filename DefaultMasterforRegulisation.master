@@ -1,0 +1,378 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="DefaultMasterforRegulisation.master.cs" Inherits="DefaultMasterforRegulisation" %>
+
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1" runat="server">
+    <title></title>
+    <asp:ContentPlaceHolder ID="head" runat="server">
+    </asp:ContentPlaceHolder>
+    <meta name="Generator" content="EditPlus" />
+    <meta name="Author" content="" />
+    <meta name="Keywords" content="" />
+    <meta name="Description" content="" />
+    <link href="main.css" type="text/css" rel="stylesheet" />
+    <link href="images/heading_txt.css" type="text/css" rel="stylesheet" />
+    <link href="images/table_brdr.css" type="text/css" rel="stylesheet" />
+
+    <meta http-equiv="Content-Type" content="text/html; charseet=iso-8859-1" />
+
+    <link href="CSS/ThemeBlue.css" rel="Stylesheet" type="text/css" />
+    <link href="css/Designcss.css" rel="stylesheet" />
+
+    <%-- <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css" />--%>
+    <link href="Styles/calendar-blue.css" rel="stylesheet" type="text/css" />
+    <link href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" rel="stylesheet" />
+    <link href="http://cdn.datatables.net/plug-ins/725b2a2115b/integration/jqueryui/dataTables.jqueryui.css" rel="stylesheet" />
+
+
+
+
+    <script src="FileUpload/js/jquery.min.js"></script>
+    <script src="FileUpload/js/jquery-ui.js"></script>
+    <script src="Scripts/jquery.dynDateTime.min.js" type="text/javascript"></script>
+    <script src="Scripts/calendar-en.min.js" type="text/javascript"></script>
+    <script src="http://cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
+    <script src="http://cdn.datatables.net/plug-ins/725b2a2115b/integration/jqueryui/dataTables.jqueryui.js"></script>
+
+    <style type="text/css">
+        /*.accordian
+        {
+            width: auto;
+        }
+
+        .accordionHeader
+        {
+            border: 1px solid #2F4F4F;
+            font-family: Calibri;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 0px;
+            margin-top: 1px;
+            cursor: pointer;
+            color: black;
+            background-image: url(Images/Menu_top.jpg);
+            background-size: inherit;
+            border-bottom: 1px solid #666;
+            height: 23px;
+            padding-top: 3px;
+        }
+
+        .accordionHeaderSelected
+        {
+            border: 1px solid #2F4F4F;
+            background-color: #D3DEEF;
+            font-family: Calibri;
+            font-size: 3px;
+            font-weight: bold;
+            padding: 0px;
+            margin-top: 0px;
+            cursor: pointer;
+            color: black;
+        }
+
+        .accordionContent
+        {
+            background-color: #D3DEEF;
+            border: 1px dashed #2F4F4F;
+            border-top: none;
+            padding: 1px;
+            padding-top: 4px;
+            font-size: 6px;
+            font-family: Calibri;
+        }*/
+    </style>
+</head>
+<body style="width: 100%">
+    <form id="form1" runat="server" enctype="multipart/form-data">
+
+        <div>
+            <table width="98%" height="100%" border="0" align="left" cellpadding="0" cellspacing="0" style="background-color: #567497; border: 1px solid #567497;">
+                <tr>
+                    <td valign="top">
+                        <table width="100%" height="100%" border="0" align="left" cellpadding="0" cellspacing="0" style="background-color: #567497;">
+                            <tr>
+                                <td width="980px" height="20px" colspan="2" style="background-color: white">
+                                    <table width="100%" border="0" cellpadding="0" cellspacing="0">
+                                        <tr>
+                                            <td width="33%">&nbsp;<span style="padding-left: 2px; padding-top: 5px"><img alt="logo" src="Images/FEDCRM.PNG" /></span></td>
+                                            <td width="33%" align="center" class="head_txt" id="tr" runat="server">
+                                                <span style="color: white">
+                                                    <asp:Label runat="server" ID="tdWelcome" Font-Bold="true" ForeColor="#255bf2"></asp:Label>
+                                                </span>
+                                                |<a href="#" onclick="sigout();"><span style="color: #255bf2"> Signout</span></a>
+                                                <script language="javascript" type="text/javascript">
+                                                    function sigout() {
+                                                        debugger;
+                                                       // SetLogoutCookie('true');
+                                                        //  alert('Successfully Logged Out.');
+                                                        document.location.href = 'Logout.aspx';
+                                                    }
+                                                </script>
+                                            </td>
+                                            <td width="34%" align="right" valign="middle"><a href="http://www.fedco.co.in" target="_blank" style="background-color: white">
+                                                <img src="Images/FEDCO_LOGO.png" alt="visiontek" border="0" style="padding-left: 2px; padding-top: 2px; background-color: white" /></a>&nbsp;          
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspn="2" style="background-color: #567497" height="1px"></td>
+                            </tr>
+                            <tr height="20px">
+                                <td background="Images/top_border.gif">&nbsp;         
+                                </td>
+                                <td background="Images/top_border.gif">
+                                    <div id="tabs1">
+                                        <ul>
+                                            <li id="li1" onclick="setActiveTab(this)" class="selected" classname="selected">
+                                                <a id="Linkbutton1">
+                                                    <span>This Year</span></a></li>
+                                            <li id="li2" onclick="setActiveTab(this)" class="selected1" classname="selected1">
+                                                <a id="Linkbutton2">
+                                                    <span>Last Year</span></a></li>
+                                            <li id="li3" onclick="setActiveTab(this)" class="selected1" classname="selected1">
+                                                <a id="Linkbutton3" href="javascript:__doPostBack('Linkbutton3','')">
+                                                    <span>Prior Years</span></a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <%--left panel----------------------------------------------------------%>
+                                <td width="230px" height="600px" valign="top">
+
+                                    <table border="0" cellpadding="0" cellspacing="0" valign="top" width="100%" height="100%" style="padding-top: 0px">
+                                        <tr>
+                                            <td>
+                                                <table border="0" cellpadding="0" cellspacing="0" valign="top" width="97%" height="100%" align="center">
+                                                    <tr>
+                                                        <td valign="top" width="100%">
+
+                                                            <div id="accordion" class="accordian">
+                                                                <div class="accordionHeader">&nbsp;&nbsp;Masters</div>
+                                                                <div class="accordionHeaderSelected">
+                                                                    <table width="98%" height="350px" valign="top">
+                                                                        <tr>
+                                                                            <td valign="top">
+                                                                                <table width="100%" style="padding-top: 0px" height="5px">
+                                                                                    <tr valign="top">
+                                                                                        <td valign="center" width="3%">
+                                                                                            <img height="16" alt="r_icon" src="Images/product.gif" width="14"></td>
+                                                                                        <td class="leftnav_links" valign="top">
+                                                                                            <a onclick="openwinPayment();" href="">Division Master </a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td valign="center">
+                                                                                            <img height="16" alt="r_icon" src="Images/product.gif" width="16"></td>
+                                                                                        <td class="leftnav_links" valign="top">
+                                                                                            <a onclick="openwinPayment();" href="">Sub-Division Master </a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+                                                                    </table>
+                                                                </div>
+                                                                <div class="accordionHeader">&nbsp;&nbsp;Regularisation</div>
+                                                                <div class="accordionHeaderSelected">
+                                                                    <table width="100%" height="300px">
+                                                                        <tr>
+                                                                            <td valign="top">
+                                                                                <table width="100%">
+                                                                                    <tr>
+                                                                                        <td valign="center">
+                                                                                            <img height="16" alt="r_icon" src="Images/product.gif" width="16" width="3%"></td>
+                                                                                        <td class="leftnav_links" valign="center">
+                                                                                            <a href="../Regulisation/frmNewConnection.aspx">New Connection</a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td valign="center">
+                                                                                            <img height="16" alt="r_icon" src="Images/product.gif" width="16" width="3%"></td>
+                                                                                        <td class="leftnav_links" valign="center">
+                                                                                            <a href="../Regulisation/frmConnection.aspx?val=le">Load Enhancement</a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td valign="center">
+                                                                                            <img height="16" alt="r_icon" src="Images/product.gif" width="16" width="3%"></td>
+                                                                                        <td class="leftnav_links" valign="center">
+                                                                                            <a href="../Regulisation/frmConnection.aspx?val=lr">Load Reduction</a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td valign="center">
+                                                                                            <img height="16" alt="r_icon" src="Images/product.gif" width="16" width="3%"></td>
+                                                                                        <td class="leftnav_links" valign="center">
+                                                                                            <a href="../Regulisation/frmConnection.aspx?val=changeincat">Change in Category</a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td valign="center" width="3%">
+                                                                                            <img height="16" alt="r_icon" src="Images/product.gif" width="16"></td>
+                                                                                        <td class="leftnav_links" valign="center">
+                                                                                            <a href="../Regulisation/frmNameChange.aspx?val=1">Name Change</a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td valign="center">
+                                                                                            <img height="16" alt="r_icon" src="Images/product.gif" width="16" width="3%"></td>
+                                                                                        <td class="leftnav_links" valign="center">
+                                                                                            <a href="../Regulisation/frmBillingAddressChange.aspx">Address Change</a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td valign="center">
+                                                                                            <img height="16" alt="r_icon" src="Images/product.gif" width="16" width="3%"></td>
+                                                                                        <td class="leftnav_links" valign="center">
+                                                                                            <a href="../Regulisation/frmConnection.aspx?val=disconnect">Disconnection</a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td valign="center">
+                                                                                            <img height="16" alt="r_icon" src="Images/product.gif" width="16" width="3%"></td>
+                                                                                        <td class="leftnav_links" valign="center">
+                                                                                            <a href="../Regulisation/frmConnection.aspx?val=reconnect">Reconnection</a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+
+                                                                    </table>
+                                                                </div>
+                                                                <div class="accordionHeader">&nbsp;&nbsp;MIS Reports</div>
+                                                                <div class="accordionHeaderSelected">
+                                                                    <table width="100%" height="300px">
+                                                                        <tr>
+                                                                            <td valign="top">
+                                                                                <table width="100%">
+                                                                                    <tr>
+                                                                                        <td valign="center" width="3%">
+                                                                                            <img height="16" alt="r_icon" src="Images/product.gif" width="16"></td>
+                                                                                        <td class="leftnav_links" valign="center" align="left">
+                                                                                            <a onclick="openwinPayment();" href="">Reports</a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td valign="center">
+                                                                                            <img height="16" alt="r_icon" src="Images/product.gif" width="16" width="3%"></td>
+                                                                                        <td class="leftnav_links" valign="center">
+                                                                                            <a onclick="openwinPayment();" href="">Reports</a>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </td>
+                                                                        </tr>
+
+                                                                    </table>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <!--end of left panel------------------------->
+                                <!--Body Panel------------------------------------------>
+                                <td width="780px" align="center" height="600px" valign="top" style="background-color: white; overflow: scroll">
+
+                                    <table width="100%">
+                                        <tr>
+                                            <td style="height: 10px"></td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+                                                </asp:ContentPlaceHolder>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                                <!---end-->
+                            </tr>
+
+                        </table>
+                    </td>
+                </tr>
+            </table>
+            <asp:HiddenField ID="hidAccordionIndex" runat="server" Value="-1" />
+        </div>
+
+    </form>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            debugger;
+            var activeIndex = parseInt($('#<%=hidAccordionIndex.ClientID %>').val());
+            if (activeIndex < 0)
+                activeIndex = false;
+            $("#accordion").accordion({
+                autoHeight: false,
+                event: "mousedown",
+                active: activeIndex,
+                change: function (event, ui) {
+                    var index = $(this).children('h3').index(ui.newHeader);
+                    $('#<%=hidAccordionIndex.ClientID %>').val(index);
+                }
+            });
+        });
+    </script>
+    <style type="text/css">
+        .btn
+        {
+            -moz-box-shadow: inset 0px 1px 0px 0px #bbdaf7;
+            -webkit-box-shadow: inset 0px 1px 0px 0px #bbdaf7;
+            box-shadow: inset 0px 1px 0px 0px #bbdaf7;
+            background: -webkit-gradient( linear, left top, left bottom, color-stop(0.05, #79bbff), color-stop(1, #378de5) );
+            background: -moz-linear-gradient( center top, #79bbff 5%, #378de5 100% );
+            filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#79bbff', endColorstr='#378de5');
+            background-color: #79bbff;
+            -webkit-border-top-left-radius: 0px;
+            -moz-border-radius-topleft: 0px;
+            border-top-left-radius: 0px;
+            -webkit-border-top-right-radius: 0px;
+            -moz-border-radius-topright: 0px;
+            border-top-right-radius: 0px;
+            -webkit-border-bottom-right-radius: 0px;
+            -moz-border-radius-bottomright: 0px;
+            border-bottom-right-radius: 0px;
+            -webkit-border-bottom-left-radius: 0px;
+            -moz-border-radius-bottomleft: 0px;
+            border-bottom-left-radius: 0px;
+            text-indent: 0px;
+            border: 1px solid #84bbf3;
+            display: inline-block;
+            color: #ffffff;
+            font-family: Arial;
+            font-size: 15px;
+            font-weight: bold;
+            font-style: normal;
+            height: 33px;
+            line-height: 33px;
+            width: 74px;
+            text-decoration: none;
+            text-align: center;
+            text-shadow: 1px 1px 0px #528ecc;
+        }
+
+            .btn:hover
+            {
+                background: -webkit-gradient( linear, left top, left bottom, color-stop(0.05, #378de5), color-stop(1, #79bbff) );
+                background: -moz-linear-gradient( center top, #378de5 5%, #79bbff 100% );
+                filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#378de5', endColorstr='#79bbff');
+                background-color: #378de5;
+            }
+
+            .btn:active
+            {
+                position: relative;
+                top: 1px;
+            }
+    </style>
+</body>
+</html>

@@ -1,0 +1,358 @@
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Default.master" AutoEventWireup="true" CodeFile="frmDemandNotePayment.aspx.cs" Inherits="Regulisation_frmDemandNotePayment" %>
+
+<asp:Content ID="Content1" ContentPlaceHolderID="head" runat="Server">
+    <script language="javascript" type="text/javascript">
+        function uservalidation() {
+            // document.getElementById('hidden1').value = 2;
+            if (document.getElementById("txtEstimatee_fee").value == "") {
+                alert("Enter Estimate Fee")
+                document.getElementById("txtEstimatee_fee").focus()
+                return false;
+            }
+            else if (document.getElementById("txtSupervision_charges").value == "") {
+                alert("Enter Supervision charges")
+                document.getElementById("txtSupervision_charges").focus()
+                return false;
+            }
+            else if (document.getElementById("txtCess_charges").value == "") {
+                alert("Enter Cess charges")
+                document.getElementById("txtCess_charges").focus()
+                return false;
+            }
+            else if (document.getElementById("txtSecurity_deposit").value == "") {
+                alert("Enter Security deposit")
+                document.getElementById("txtSecurity_deposit").focus()
+                return false;
+            }
+            else if (document.getElementById("txtServiceConnectionCharges").value == "") {
+                alert("Enter ServiceConnectionCharges")
+                document.getElementById("txtServiceConnectionCharges").focus()
+                return false;
+            }
+            else if (document.getElementById("txtInspectionCharges").value == "") {
+                alert("Enter Inspection Charges")
+                document.getElementById("txtInspectionCharges").focus()
+                return false;
+            }
+
+
+
+            return true;
+        }
+        function datevalidation() {
+            if (document.getElementById("txtday").value.length > 0) {
+                if (document.getElementById("txtday").value > 31) {
+                    alert("Day Should Not greater than 31 days")
+                    document.getElementById("txtday").focus()
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        function numbersonly(e) {
+            var unicode = e.charCode ? e.charCode : e.keyCode;
+            if(unicode != 8) {
+                if (unicode < 48 || unicode > 57)
+                    return false;
+            }
+        }
+        function validatenumerics(key, value) {
+            //getting key code of pressed key
+            var keycode = (key.which) ? key.which : key.keyCode;
+            //comparing pressed keycodes
+
+            if (keycode > 31 && (keycode < 48 || keycode > 57) && keycode != 46) {
+
+                return false;
+            }
+            else return true;
+        }
+        function isNumberKey(key) {
+            //getting key code of pressed key
+            var keycode = (key.which) ? key.which : key.keyCode;
+            //comparing pressed keycodes
+
+            if (keycode > 31 && (keycode < 48 || keycode > 57) && keycode != 47) {
+                alert(" You can enter only characters 0 to 9 ");
+                return false;
+            }
+            else return true;
+        }
+    </script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#<%=txtChequeDate.ClientID%>").dynDateTime({
+                showsTime: true,
+                ifFormat: "%d-%m-%Y",
+                daFormat: "%l;%M %p, %e %m,  %Y",
+                align: "BR",
+                electric: false,
+                singleClick: true,
+                displayArea: ".siblings('.dtcDisplayArea')",
+                button: ".next()"
+            });
+            $("#<%=txtManualReceiptDate.ClientID%>").dynDateTime({
+                showsTime: true,
+                ifFormat: "%d-%m-%Y",
+                daFormat: "%l;%M %p, %e %m,  %Y",
+                align: "BR",
+                electric: false,
+                singleClick: true,
+                minDate: -20, 
+                maxDate: "+0D",
+                displayArea: ".siblings('.dtcDisplayArea')",
+                button: ".next()"
+            });
+        });
+       
+    </script>
+   
+</asp:Content>
+<asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="Server">
+    <table cellpadding="0" cellspacing="0" width="450px" align="center">
+        <tr>
+            <td style="height: 5px"></td>
+        </tr>
+        <tr>
+            <td>
+                <table cellpadding="0" cellspacing="0" width="450px" align="center" class="table">
+
+                    <tr>
+                        <td class="Header" colspan="2">&nbsp;&nbsp;&nbsp; Receive Payment</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <hr />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <table cellpadding="0" cellspacing="0" width="98%" align="center" class="table">
+                                <tr>
+                                    <td class="Labeltext" width="53%">Ticket Number :<span style="color: Red">&nbsp;</span></td>
+                                    <td align="left" class="column">
+                                        <input id="cmbTicketNumber" runat="server" class="Textbox" />&nbsp;
+                                   <asp:Button ID="btnView" runat="server" CssClass="buttons" Text="View" Width="60px" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="Labeltext">Division Name:</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtDIV_name" runat="server" TabIndex="104" Width="160px" CssClass="Textbox" MaxLength="25" Enabled="False"></asp:TextBox>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="Labeltext">Sub Division Name :</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtSubDiv_name" runat="server" TabIndex="104" Width="160px" MaxLength="25" Enabled="False" CssClass="Textbox"></asp:TextBox></td>
+                                </tr>
+                                <tr>
+                                    <td class="Labeltext">Section Name :</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtSection_name" runat="server" CssClass="Textbox" TabIndex="104" Width="160px" MaxLength="25" Enabled="False"></asp:TextBox>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="Labeltext">Address :</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtaddress" runat="server" TextMode="MultiLine" TabIndex="103"
+                                            Width="157px" CssClass="Textbox" MaxLength="80" Enabled="False"></asp:TextBox>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext">Consumer Name :</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtConsumerName" runat="server" TabIndex="104" Width="160px" MaxLength="25"
+                                            Enabled="False" CssClass="Textbox"></asp:TextBox></td>
+
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext">Demand Note Number :</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtDemandNoteNumber" TabIndex="105" runat="server" Width="70px" MaxLength="11" Enabled="False" CssClass="Textbox">
+                                        </asp:TextBox>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext">Manual Receipt Number :</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtManualReceiptNumber" runat="server" MaxLength="25"
+                                            Width="160px" TabIndex="106" CssClass="Textbox"></asp:TextBox>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext">Manual Receipt Date :</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtManualReceiptDate" runat="server" MaxLength="25"
+                                            CssClass="Textbox" Width="70px" TabIndex="106" Enabled="False">
+                                        </asp:TextBox>&nbsp;<img id="imgCalManual" src="../calender.png" />
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext">Receipt Number :</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtReceiptNumber" runat="server" MaxLength="25" Width="160px"
+                                            TabIndex="106" Enabled="False" CssClass="Textbox"></asp:TextBox>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="Labeltext">Processing Fee:</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtProcessingFee" runat="server" MaxLength="10" Width="70px" TabIndex="107"
+                                            onkeypress="return validatenumerics(event)" Enabled="False" CssClass="Textbox"></asp:TextBox>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext">Service Connection Charges:</td>
+                                    <td align="left">
+                                        <asp:TextBox ID="txtSeviceConnectionCharges" runat="server" TabIndex="108" AutoPostBack="True" CssClass="Textbox"
+                                            Width="70px" MaxLength="10" onkeypress="return validatenumerics(event)" Enabled="False"></asp:TextBox>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext">Estimate Cost:</td>
+                                    <td align="left">
+                                        <asp:TextBox ID="txtEstimateCost" runat="server" TabIndex="109" AutoPostBack="True" Width="70px"
+                                            MaxLength="10" onkeypress="return validatenumerics(event)" Enabled="False" CssClass="Textbox"></asp:TextBox>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext">Supervision Charges:</td>
+                                    <td align="left">
+                                        <asp:TextBox ID="txtSupervisionCharges" runat="server" TabIndex="110" Width="70px"
+                                            CssClass="Textbox" MaxLength="10" onkeypress="return validatenumerics(event)" Enabled="False"></asp:TextBox>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext">CESS Charges:</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtCessCharges" runat="server" MaxLength="10" Width="70px" TabIndex="111"
+                                            onkeypress="return validatenumerics(event)" Enabled="False" CssClass="Textbox"></asp:TextBox>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="Labeltext">Security Deposit:</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtSecurityDeposit" runat="server" TabIndex="112" AutoPostBack="false" Width="70px" MaxLength="10"
+                                            onkeypress="return validatenumerics(event)" Enabled="False" CssClass="Textbox"></asp:TextBox>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext">Energy Charges:</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtEnergy_charges" runat="server" TabIndex="112" AutoPostBack="false" Width="70px" MaxLength="10"
+                                            onkeypress="return validatenumerics(event)" Enabled="False" CssClass="Textbox"></asp:TextBox>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext">Electricity Duty Charges:</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtDuty_charges" runat="server" TabIndex="112" AutoPostBack="false" Width="70px" MaxLength="10"
+                                            onkeypress="return validatenumerics(event)" Enabled="False" CssClass="Textbox"></asp:TextBox>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext">Misc Charges: </td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtMISC_FEE" runat="server" TabIndex="112" AutoPostBack="false" Width="70px" MaxLength="10"
+                                            onkeypress="return validatenumerics(event)" Enabled="False" CssClass="Textbox"></asp:TextBox>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext"><b>Total:</b></td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtTotal" runat="server" TabIndex="114" AutoPostBack="True" CssClass="Textbox"
+                                            Width="70px" MaxLength="10" onkeypress="return validatenumerics(event)" Enabled="False" Font-Bold="True"></asp:TextBox>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext">Payment Modes :<span style="color: Red">*</span>
+                                        <%--</tPayment Mode:--%>
+                                    </td>
+                                    <td align="left" class="column">
+                                        <asp:DropDownList ID="cmbpaymentMode" runat="server" TabIndex="100" Width="100px" CssClass="combobox" AutoPostBack="True" Height="16px">
+                                            <asp:ListItem>Cash</asp:ListItem>
+                                            <asp:ListItem>Cheque</asp:ListItem>
+                                            <asp:ListItem>Demand Draft</asp:ListItem>
+                                            <asp:ListItem>RTGS</asp:ListItem>
+                                        </asp:DropDownList>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="Labeltext">Bank Name</td>
+                                    <td align="left" class="column">
+                                        <asp:DropDownList ID="cmbBankName" runat="server" TabIndex="100" Width="160px" CssClass="combobox" AutoPostBack="True" Height="16px" Enabled="False">
+                                        </asp:DropDownList>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="Labeltext">Cheque Number/DD Number/RTGS Number:</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtChequeNumber" runat="server" TabIndex="109" AutoPostBack="True" CssClass="Textbox"
+                                            Width="70px" MaxLength="7" onkeypress="return validatenumerics(event)" Enabled="False"></asp:TextBox>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="Labeltext">Cheque Number/DD Number/RTGS Date:</td>
+                                    <td align="left" class="column">
+                                        <asp:TextBox ID="txtChequeDate" runat="server" TabIndex="109" Width="70px"
+                                            CssClass="Textbox" MaxLength="10" Enabled="False"></asp:TextBox>&nbsp;<img id="imgCal" src="../calender.png" />
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" colspan="2">
+                            <hr />
+                            <asp:Button ID="btnSave" runat="server" Text="Save" CssClass="buttons"
+                                TabIndex="111" OnClientClick="return uservalidation()" Enabled="False" />
+                            &nbsp;
+      <asp:Button ID="btnSubmit" runat="server" Text="Receipt" CssClass="buttons" TabIndex="111" />&nbsp;
+    <input type="reset" id="btnreset" class="buttons" tabindex="10" runat="server" value="Close"
+        onclick="javascript: window.close();" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+
+                            <asp:TextBox ID="txtsec_code" runat="server" Height="3px" TabIndex="104" Width="16px" MaxLength="25" Enabled="False" Visible="False"></asp:TextBox>
+
+                            <asp:TextBox ID="txtsubdiv_code" runat="server" Height="3px" TabIndex="104" Width="25px" MaxLength="25" Enabled="False" Visible="False"></asp:TextBox>
+
+                            <asp:TextBox ID="txtDIV_code" runat="server" Height="3px" TabIndex="104" Width="16px" MaxLength="25" Enabled="False" Visible="False"></asp:TextBox>
+                        </td>
+                        <td align="left">
+                            <asp:TextBox ID="txtMobileNumber" runat="server" TabIndex="104" Width="100px" MaxLength="25"
+                                Enabled="False" CssClass="Textbox" Visible="False"></asp:TextBox>
+                            <asp:TextBox ID="txtWorkerNumber" runat="server" TabIndex="104" Width="100px"
+                                MaxLength="25" Enabled="False" CssClass="Textbox" Visible="False"></asp:TextBox>
+                            <asp:TextBox ID="txtResponsibleWorkerName" runat="server" TabIndex="104" Width="45px"
+                                MaxLength="25" Enabled="False" CssClass="Textbox" Visible="False"></asp:TextBox>
+                            <asp:TextBox ID="txtLoad" runat="server" TabIndex="104" Width="100px" MaxLength="25"
+                                Enabled="False" CssClass="Textbox" Visible="False"></asp:TextBox>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+
+    </table>
+</asp:Content>
+

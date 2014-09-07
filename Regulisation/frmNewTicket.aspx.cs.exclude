@@ -1,0 +1,914 @@
+﻿using DataAccessLayer;
+using System;
+using System.Data;
+using System.Globalization;
+using System.Web.UI;
+using Utilities;
+
+public partial class Regulisation_frmNewTicket : System.Web.UI.Page
+{
+    IDBManager m_db;
+    int iRecordsFetched;
+    CSMS m_sms;
+    bool IsPageRefresh;
+    private bool _refreshState;
+    private bool _isRefresh;
+    protected void Page_Load(object sender, System.EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            DateTime dt = System.DateTime.Now;
+            MKB.TimePicker.TimeSelector.AmPmSpec am_pm = default(MKB.TimePicker.TimeSelector.AmPmSpec);
+            if (dt.ToString("tt") == "AM")
+            {
+                am_pm = MKB.TimePicker.TimeSelector.AmPmSpec.AM;
+            }
+            else
+            {
+                am_pm = MKB.TimePicker.TimeSelector.AmPmSpec.PM;
+            }
+            txtTicketGeneratedTime.SetTime(DateTime.Now.Hour, DateTime.Now.Minute, am_pm);
+            txtTicketGeneratedDate.Text = DateTime.Now.ToString("dd-MM-yyyy");
+            tmppanel.Enabled = false;
+            DataSet pDataset = new DataSet();
+            DBManager m_db = new DBManager(DataProvider.Oracle);
+            m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString.ToString();
+            m_db.Open();
+            pDataset = m_db.ExecuteDataSet(CommandType.Text, "select display_code,division_code,div_name from tbl_division");
+            if (pDataset == null)
+            {
+                m_db.Close();
+                m_db.Dispose();
+                // strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+                Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "division Det");
+            }
+            CmbComplaintType.Enabled = false;
+            CmbComplaintSubCategory.Enabled = false;
+            CmbComplaintSubDetails.Enabled = false;
+            CmbComplaintNumber.Enabled = false;
+            txtConsumerAccountNumber.Enabled = false;
+            PanleConnection.Enabled = true;
+            cmbDivision.Items.Add("--Select--");
+            cmbDivisionCode.Items.Add("--Select--");
+            cmbSubdivision.Items.Add("--Select--");
+            cmbSubdivisionCode.Items.Add("--Select--");
+            cmbSection.Items.Add("--Select--");
+            cmbSectionCode.Items.Add("--Select--");
+            cmbSectionIncharge.Items.Add("--Select--");
+            cmbSectionInchargeCode.Items.Add("--Select--");
+            CmbComplaintNumber.Items.Add("--Select--");
+            if (pDataset.Tables[0].Rows.Count > 0)
+            {
+                for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++)
+                {
+                    cmbDivision.Items.Add(pDataset.Tables[0].Rows[i]["div_name"].ToString());
+                    cmbDivisionCode.Items.Add(pDataset.Tables[0].Rows[i]["division_code"].ToString());
+                }
+            }
+            pDataset.Clear();
+            pDataset.Tables.Clear();
+            pDataset = m_db.ExecuteDataSet(CommandType.Text, "select distinct(Complaint_number) from tbl_complaint");
+            if (pDataset == null)
+            {
+                m_db.Close();
+                m_db.Dispose();
+                // strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+                Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "division Det");
+            }
+
+            if (pDataset.Tables[0].Rows.Count > 0)
+            {
+                for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++)
+                {
+                    CmbComplaintNumber.Items.Add(pDataset.Tables[0].Rows[i]["Complaint_number"].ToString());
+
+                }
+
+            }
+            CmbComplaintType_SelectedIndexChanged("", e);
+            pDataset.Dispose();
+            m_db.Dispose();
+            ViewState["postids"] = System.Guid.NewGuid().ToString();
+            Session["postid"] = ViewState["postids"].ToString();
+        }
+        else
+        {
+            if (ViewState["postids"].ToString() != Session["postid"].ToString())
+            {
+                IsPageRefresh = true;
+            }
+            Session["postid"] = System.Guid.NewGuid().ToString();
+            ViewState["postids"] = Session["postid"].ToString();
+        }
+        CUSERDetails objCUSERDetails = new CUSERDetails();
+        objCUSERDetails = (CUSERDetails)Session["sesuUserDetails"];
+        if (objCUSERDetails == null)
+        {
+            Response.Write("<script>alert('Session Expired');document.location.href='Login.aspx';</script>");
+            // if user entered not through the loginpage he has no permissions to view this
+            return;
+        }
+    }
+    protected void cmbDivision_SelectedIndexChanged(object sender, EventArgs e)
+	{
+		if (cmbDivision.SelectedIndex > 0) {
+			DataSet pDataset = new DataSet();
+			cmbDivisionCode.SelectedIndex = cmbDivision.SelectedIndex;
+			cmbSubdivision.Items.Clear();
+			cmbSubdivision.Items.Add("--Select--");
+			cmbSubdivisionCode.Items.Clear();
+			cmbSubdivisionCode.Items.Add("--Select--");
+			cmbSection.Items.Clear();
+			cmbSection.Items.Add("--Select--");
+			cmbSectionCode.Items.Clear();
+			cmbSectionCode.Items.Add("--Select--");
+			cmbSectionIncharge.Items.Clear();
+			cmbSectionIncharge.Items.Add("--Select--");
+			cmbSectionInchargeCode.Items.Clear();
+			cmbSectionInchargeCode.Items.Add("--Select--");
+            m_db = new DBManager(DataProvider.Oracle);
+			m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+			m_db.Open();
+			pDataset = m_db.ExecuteDataSet(CommandType.Text, "select sub_div_code,sub_div_name from tbl_sub_division where division_code='" + cmbDivisionCode.SelectedItem.Text + "'");
+			if (pDataset == null) {
+				m_db.Close();
+				m_db.Dispose();
+				// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+				Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "Subdivision Det");
+			}
+			if (pDataset.Tables[0].Rows.Count > 0) {
+				for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+					cmbSubdivision.Items.Add(pDataset.Tables[0].Rows[i]["sub_div_name"].ToString());
+                    cmbSubdivisionCode.Items.Add(pDataset.Tables[0].Rows[i]["sub_div_code"].ToString());
+				}
+			}
+			pDataset.Dispose();
+			m_db.Dispose();
+			cmbSubdivision.Focus();
+		}
+	}
+
+	protected void cmbSubdivision_SelectedIndexChanged(object sender, EventArgs e)
+	{
+		if (cmbDivision.SelectedIndex > 0) {
+			DataSet pDataset = new DataSet();
+			cmbSubdivisionCode.SelectedIndex = cmbSubdivision.SelectedIndex;
+			cmbSection.Items.Clear();
+			cmbSection.Items.Add("--Select--");
+			cmbSectionCode.Items.Clear();
+			cmbSectionCode.Items.Add("--Select--");
+			cmbSectionIncharge.Items.Clear();
+			cmbSectionIncharge.Items.Add("--Select--");
+			cmbSectionInchargeCode.Items.Clear();
+			cmbSectionInchargeCode.Items.Add("--Select--");
+			m_db = new DBManager(DataProvider.Oracle);
+			m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+			m_db.Open();
+			pDataset = m_db.ExecuteDataSet(CommandType.Text, "select sec_code,sec_name from tbl_section where div_code='" + cmbDivisionCode.SelectedItem.Text + "' and sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "'");
+
+			if (pDataset == null) {
+				m_db.Close();
+				m_db.Dispose();
+				// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+				Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "Subdivision Det");
+			}
+			if (pDataset.Tables[0].Rows.Count > 0) {
+				for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+                    cmbSection.Items.Add(pDataset.Tables[0].Rows[i]["sec_name"].ToString());
+                    cmbSectionCode.Items.Add(pDataset.Tables[0].Rows[i]["sec_code"].ToString());
+				}
+			}
+			pDataset.Dispose();
+			m_db.Dispose();
+			cmbSection.Focus();
+		}
+	}
+
+	protected void cmbSection_SelectedIndexChanged(object sender, EventArgs e)
+	{
+		if (cmbSection.SelectedIndex > 0) {
+			DataSet pDataset = new DataSet();
+			cmbSectionCode.SelectedIndex = cmbSection.SelectedIndex;
+			cmbSectionIncharge.Items.Clear();
+			cmbSectionIncharge.Items.Add("--Select--");
+			cmbSectionInchargeCode.Items.Clear();
+			cmbSectionInchargeCode.Items.Add("--Select--");
+			m_db = new DBManager(DataProvider.Oracle);
+			m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+			m_db.Open();
+			if (rdbNSC.Checked == true) {
+				pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_emp_section where tbl_employee.Employee_code=tbl_emp_section.Employee_code and tbl_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "'");
+				if (pDataset == null) {
+					m_db.Close();
+					m_db.Dispose();
+					// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+					Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "Subdivision Det");
+				}
+
+				if (pDataset.Tables[0].Rows.Count > 0) {
+					for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+                        cmbSectionIncharge.Items.Add(pDataset.Tables[0].Rows[i]["Employee_Name"].ToString());
+                        cmbSectionInchargeCode.Items.Add(pDataset.Tables[0].Rows[i]["Employee_code"].ToString());
+					}
+					cmbSectionIncharge.SelectedIndex = 1;
+					cmbSectionIncharge_SelectedIndexChanged("", e);
+				}
+			} else {
+				if (cmbSection.SelectedIndex > 0) {
+					// Dim pDataset As New DataSet
+
+					cmbSectionCode.SelectedIndex = cmbSection.SelectedIndex;
+
+					cmbSectionIncharge.Items.Clear();
+					cmbSectionIncharge.Items.Add("--Select--");
+					cmbSectionInchargeCode.Items.Clear();
+					cmbSectionInchargeCode.Items.Add("--Select--");
+
+
+					if (CmbComplaintType.SelectedIndex == 0) {
+						pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.NoSupply=1 ");
+					} else if (CmbComplaintType.SelectedIndex == 1) {
+						pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.ConnectionRelated=1 ");
+					} else if (CmbComplaintType.SelectedIndex == 2) {
+						pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Others=1 ");
+					} else if (CmbComplaintType.SelectedIndex == 3) {
+						pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.MeterRelated=1 ");
+
+					} else if (CmbComplaintType.SelectedIndex == 4) {
+						pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.BillingRelated=1 ");
+
+					}
+					if (pDataset == null) {
+						m_db.Close();
+						m_db.Dispose();
+						// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+						Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "Subdivision Det");
+					}
+					if (pDataset.Tables[0].Rows.Count > 0) {
+						for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+                            cmbSectionIncharge.Items.Add(pDataset.Tables[0].Rows[i]["Employee_Name"].ToString());
+                            cmbSectionInchargeCode.Items.Add(pDataset.Tables[0].Rows[i]["Employee_code"].ToString());
+						}
+						cmbSectionIncharge.SelectedIndex = 1;
+						cmbSectionIncharge_SelectedIndexChanged("", e);
+					}
+
+					//   txtaddress.Focus()
+				}
+			}
+
+			pDataset.Dispose();
+			m_db.Dispose();
+			txtaddress.Focus();
+		}
+	}
+
+	protected void cmbSectionIncharge_SelectedIndexChanged(object sender, EventArgs e)
+	{
+		if (cmbSectionIncharge.SelectedIndex > 0) {
+			DataSet pDataset = new DataSet();
+			cmbSectionInchargeCode.SelectedIndex = cmbSectionIncharge.SelectedIndex;
+
+			m_db = new DBManager(DataProvider.Oracle);
+			m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+			m_db.Open();
+			pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee where Employee_code='" + cmbSectionInchargeCode.SelectedItem.Text + "'");
+
+			if (pDataset == null) {
+				m_db.Close();
+				m_db.Dispose();
+				// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+				Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "Section Det");
+			}
+			if (pDataset.Tables[0].Rows.Count > 0) {
+				txtSectionInchageMobile.Text = pDataset.Tables[0].Rows[0]["Mobile_No"].ToString();
+				txtSetcionEmailID.Text = pDataset.Tables[0].Rows[0]["Email_Id"].ToString();
+
+			}
+			pDataset.Dispose();
+			m_db.Dispose();
+		}
+	}
+
+	protected void btnSubmit_Click(object sender, EventArgs e)
+	{
+		DataSet pDataset = new DataSet();
+		string strsql = "";
+		string m_ticketNumber = "0";
+		string strMessage = "";
+		string strResponse = "";
+
+        CUSERDetails objUserDetails = new CUSERDetails();
+		int m_ishooking = 0;
+		string m_connectionType ="New Connection";
+		btnSubmit.Enabled = false;
+        objUserDetails =(CUSERDetails)Session["sesuUserDetails"];
+		m_db = new DBManager(DataProvider.Oracle);
+		m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+		m_db.Open();
+     
+		if (string.IsNullOrEmpty(txtTicketGeneratedDate.Text)) {
+			ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Ticket Registered Date Should not be Empty');", true);
+			return;
+		}
+		if (m_db.Connection.State == ConnectionState.Open) {
+			if (rdbNSC.Checked == true) {
+				if (cmbDivisionCode.SelectedIndex == 1) {
+                    strsql = "select max(SUBSTR(TicketNumber, 6, 8))+1 from tbl_ticketmaster where div_code='" + cmbDivisionCode.Text + "' and ApplicationType  in('New Connection','Temporary Connection') and SUBSTR(TicketNumber, 6, 8) between 100000 and 199999";
+
+				}
+                else if (cmbDivisionCode.SelectedIndex == 2) {
+                    strsql = "select max(SUBSTR(TicketNumber, 6, 8))+1 from tbl_ticketmaster where div_code='" + cmbDivisionCode.Text + "' and ApplicationType  in('New Connection','Temporary Connection') and SUBSTR(TicketNumber, 6, 8) between 200000 and 299999";
+
+				}
+                else if (cmbDivisionCode.SelectedIndex == 3) {
+                    strsql = "select max(SUBSTR(TicketNumber, 6, 8))+1 from tbl_ticketmaster where div_code='" + cmbDivisionCode.Text + "' and ApplicationType  in('New Connection','Temporary Connection') and SUBSTR(TicketNumber, 6, 8) between 300000 and 399999";
+
+				} 
+                else if (cmbDivisionCode.SelectedIndex == 4) {
+                    strsql = "select max(SUBSTR(TicketNumber, 6, 8))+1 from tbl_ticketmaster where div_code='" + cmbDivisionCode.Text + "' and ApplicationType  in('New Connection','Temporary Connection') and SUBSTR(TicketNumber, 6, 8) between 400000 and 499999";
+
+				}
+
+				// strsql = "select max(SUBSTRING(TicketNumber, 6, 8))+1 from tbl_ticketmaster where div_code='" & cmbDivisionCode.Text & "' and ApplicationType  in('New Connection','Temporary Connection')"
+
+
+				pDataset = m_db.ExecuteDataSet(CommandType.Text, strsql);
+                //if ((pDataset != null) && (pDataset.ToString() != ""))
+                if (pDataset.Tables[0].Rows.Count!=0)
+                {
+                    if (pDataset.Tables[0].Rows.Count > 0 && ((pDataset.Tables[0].Rows[0][0].ToString() != null) || (pDataset.Tables[0].Rows[0][0].ToString()) != ""))
+                    {
+                        m_ticketNumber = pDataset.Tables[0].Rows[0][0].ToString();
+                    }
+                    else
+                    {
+						if (cmbDivisionCode.SelectedIndex == 1) {
+							m_ticketNumber = "100000";
+						} else if (cmbDivisionCode.SelectedIndex == 2) {
+							m_ticketNumber = "200000";
+						} else if (cmbDivisionCode.SelectedIndex == 3) {
+							m_ticketNumber = "300000";
+						} else if (cmbDivisionCode.SelectedIndex == 4) {
+							m_ticketNumber = "400000";
+						}
+					}
+				} else {
+					if (cmbDivisionCode.SelectedIndex == 1) {
+						m_ticketNumber = "100000";
+					} else if (cmbDivisionCode.SelectedIndex == 2) {
+						m_ticketNumber = "200000";
+					} else if (cmbDivisionCode.SelectedIndex == 3) {
+						m_ticketNumber = "300000";
+					} else if (cmbDivisionCode.SelectedIndex == 4) {
+						m_ticketNumber ="400000";
+					}
+
+				}
+			} else {
+				strsql = "select max(SUBSTRING(TicketNumber, 6, 8))+1 from tbl_ticketmaster where ApplicationType not in('New Connection','Temporary Connection')";
+
+
+				pDataset = m_db.ExecuteDataSet(CommandType.Text, strsql);
+				if ((pDataset != null)) {
+					if ((pDataset.Tables[0].Rows.Count)>  0 & (pDataset.Tables[0].Rows[0][0].ToString())!=null) {
+						m_ticketNumber = pDataset.Tables[0].Rows[0][0].ToString();
+					} else {
+						m_ticketNumber = "500000";
+					}
+				} else {
+					m_ticketNumber ="500000";
+
+				}
+			}
+			m_ticketNumber = cmbDivision.Text.Substring(0, 1) + "-NC-" + m_ticketNumber;
+			if (rdbHooking.Checked == true) {
+				m_ishooking = 1;
+				m_ticketNumber = m_ticketNumber.Replace("NC", "HC");
+			}
+			if (rdbTemporary.Checked == true) {
+				m_ticketNumber = m_ticketNumber.Replace("NC", "TC");
+				m_connectionType = "Temporary Connection";
+			}
+			if (rdbOther.Checked == true) {
+				if (CmbComplaintType.SelectedIndex == 0) {
+					m_ticketNumber = m_ticketNumber.Replace("NC", "NS");
+					m_connectionType = "NO SUPPLY";
+
+				}
+				if (CmbComplaintType.SelectedIndex == 1) {
+					m_ticketNumber = m_ticketNumber.Replace("NC", "BR");
+					m_connectionType = "Billing Related";
+
+
+				}
+				if (CmbComplaintType.SelectedIndex == 2) {
+					m_ticketNumber = m_ticketNumber.Replace("NC", "CR");
+					m_connectionType = "Connection Related";
+
+
+				}
+				if (CmbComplaintType.SelectedIndex == 3) {
+					m_ticketNumber = m_ticketNumber.Replace("NC", "MR");
+					m_connectionType = "Meter Related";
+
+
+				}
+				if (CmbComplaintType.SelectedIndex == 4) {
+					m_ticketNumber = m_ticketNumber.Replace("NC", "OC");
+					m_connectionType = "Others";
+				}
+			}
+			string m_SourceofComplaint = "";
+			if (rdbOnM.Checked == true) {
+				m_SourceofComplaint = "O&M";
+			} else {
+				m_SourceofComplaint = "Consumer";
+			}
+			DateTime temporaryFromDate = default(DateTime);
+			DateTime temporaryToDate = default(DateTime);
+			DateTime TicketGeneratedDate = default(DateTime);
+			CultureInfo provider = CultureInfo.InvariantCulture;
+            TicketGeneratedDate = DateTime.ParseExact(txtTicketGeneratedDate.Text + " " + String.Format(txtTicketGeneratedTime.Hour.ToString(), "00") + ":" + String.Format(txtTicketGeneratedTime.Minute.ToString(), "00"), "dd-MM-yyyy HH:mm", provider);
+
+
+			if (rdbTemporary.Checked == true) {
+				try {
+                    temporaryFromDate = DateTime.ParseExact(txtFromDate.Text + " " + String.Format(fromtimepicker.Hour.ToString(), "00") + ":" + String.Format(fromtimepicker.Minute.ToString(), "00"), "dd-MM-yyyy HH:mm", provider);
+					// temporaryFromDate = DateTime.Parse(String.Format("{0}:{1}:{2} {3}", fromtimepicker.Hour, fromtimepicker.Minute, fromtimepicker.Second, fromtimepicker.AmPm))
+                    temporaryToDate = DateTime.ParseExact(txtToDate.Text + " " + String.Format(totimepicker.Hour.ToString(), "00") + ":" + String.Format(totimepicker.Minute.ToString(), "00"), "dd-MM-yyyy HH:mm", provider);
+					// temporaryToDate = DateTime.Parse(String.Format("{0}:{1}:{2} {3}", totimepicker.Hour, totimepicker.Minute, totimepicker.Second, totimepicker.AmPm))
+
+					if (!(temporaryFromDate < temporaryToDate)) {
+						ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('ToDate should be greater than FromDate');", true);
+						return;
+					}
+				} catch (Exception ex) {
+					ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Not a Valid Datetime.');", true);
+					return;
+				}
+
+				strMessage = txtConsumerName.Text + "-" + txtconsMobile.Text + " Requested for NSC with TicketNumber-" + m_ticketNumber + " has been Timedout at:" + temporaryToDate.ToString("dd-MM-yyyy HH:mm") + " plz  check for diconnection.";
+				strsql = "Insert into tbl_schedulesms values('" + txtSectionInchageMobile.Text + "','" + strMessage + "','" + temporaryToDate.ToString("yyyy-MM-dd HH:mm") + "')";
+				// strResponse = m_sms.SendScheduleSMS(txtSectionInchageMobile.Text, strMessage, temporaryToDate.ToString("dd-MM-yyyy HH:mm"))
+				m_db.ExecuteNonQuery(CommandType.Text, strsql);
+				strMessage = "Dear Customer Your Temporary connection Request has been timed out at: " + temporaryToDate.ToString("dd-MM-yyyy HH:mm");
+				strsql = "Insert into tbl_schedulesms values('" + txtconsMobile.Text + "','" + strMessage + "','" + temporaryToDate.ToString("yyyy-MM-dd HH:mm") + "')";
+
+				m_db.ExecuteNonQuery(CommandType.Text, strsql);
+
+			} else {
+				temporaryFromDate = DateTime.ParseExact("01-01-1900", "dd-MM-yyyy", provider);
+				// temporaryFromDate = DateTime.Parse(String.Format("{0}:{1}:{2} {3}", "00", fromtimepicker.Minute, fromtimepicker.Second, fromtimepicker.AmPm))
+				temporaryToDate = DateTime.ParseExact("01-01-1900", "dd-MM-yyyy", provider);
+				// temporaryToDate = DateTime.Parse(String.Format("{0}:{1}:{2} {3}", totimepicker.Hour, totimepicker.Minute, totimepicker.Second, totimepicker.AmPm))
+
+			}
+
+
+
+			if (rdbOther.Checked == false) {
+				txtTicketNumber.Text = m_ticketNumber;
+				strsql = "INSERT INTO fedconsc.tbl_ticketmaster(TicketNumber  ,CustAccunt   ,md_code   ,co_code  ,discom_code  ,circle_code  ,Div_code  ,Sub_div_code  ,sec_code  ,Sec_Name  ,NewFirstName  ,OldBuildingCompliment  ,mobile_number  ,EmaiL_ID  ,Comment  ,createdDateTime  ,createdBy ,  ApplicationStatus,ResponsibleWorker,ApplicationType,Phase,IsHooking,Village,NearestLandMark,LoadRequired,RequiredLoadUnit,SourceOfComplaint,temporaryFromDate,temporaryToDate) Values(";
+				strsql += "'" + m_ticketNumber + "',";
+				strsql += "'" + m_ticketNumber + "',";
+				strsql += "'000001',";
+				strsql += "'000001',";
+				strsql += "'000001',";
+				strsql += "'000001',";
+				strsql += "'" + cmbDivisionCode.Text + "',";
+				strsql += "'" + cmbSubdivisionCode.Text + "',";
+				strsql += "'" + cmbSectionCode.Text + "',";
+				strsql += "'" + cmbSection.Text + "',";
+				strsql += "'" + txtConsumerName.Text + "',";
+				strsql += "'" + txtaddress.Text + "',";
+				strsql += "'" + txtconsMobile.Text + "',";
+
+				strsql += "'" + txtconsMailID.Text + "',";
+				strsql += "'" + txtcomment.Text + "',";
+				strsql += "'" + TicketGeneratedDate.ToString("yyyy-MM-dd hh:mm") + "',";
+				strsql += "'" + objUserDetails.strGroupName + "',";
+				strsql += "'Ticket Generated','" + cmbSectionInchargeCode.Text + "','" + m_connectionType + "','" + cmbLoadType.Text + "',";
+				strsql += "'" + m_ishooking + "','" + txtVillage.Text + "','" + txtNearestLandMark.Text + "','" + txtLoadRequired.Text + "',";
+				strsql += "'" + cmbLoadUnits.Text + "','" + m_SourceofComplaint + "','" + temporaryFromDate.ToString("yyyy-MM-dd hh:mm") + "','" + temporaryToDate.ToString("yyyy-MM-dd hh:mm") + "')";
+
+
+				m_db.ExecuteNonQuery(CommandType.Text, strsql);
+			} else {
+				txtTicketNumber.Text = m_ticketNumber;
+				strsql = "INSERT INTO fedconsc.tbl_ticketmaster(   TicketNumber  ,CustAccunt   ,md_code   ,co_code  ,discom_code  ,circle_code  ,Div_code  ,Sub_div_code  ,sec_code  ,Sec_Name  ,NewFirstName  ,OldBuildingCompliment  ,mobile_number  ,EmaiL_ID  ,Comment  ,createdDateTime  ,createdBy ,  ApplicationStatus,ResponsibleWorker,ApplicationType,Phase,IsHooking,Village,NearestLandMark,LoadRequired,RequiredLoadUnit,ComplaintSUbCategory,ComplaintDetails,SourceOfComplaint,ComplaintCategory,ComplaintType) Values(";
+				strsql += "'" + m_ticketNumber + "',";
+				strsql += "'" + txtConsumerAccountNumber.Text + "',";
+				strsql += "'000001',";
+				strsql += "'000001',";
+				strsql += "'000001',";
+				strsql += "'000001',";
+				strsql += "'" + cmbDivisionCode.Text + "',";
+				strsql += "'" + cmbSubdivisionCode.Text + "',";
+				strsql += "'" + cmbSectionCode.Text + "',";
+				strsql += "'" + cmbSection.Text + "',";
+				strsql += "'" + txtConsumerName.Text + "',";
+				strsql += "'" + txtaddress.Text + "',";
+				strsql += "'" + txtconsMobile.Text + "',";
+
+				strsql += "'" + txtconsMailID.Text + "',";
+				strsql += "'" + txtcomment.Text + "',";
+				strsql += "'" + TicketGeneratedDate.ToString("yyyy-MM-dd hh:mm") + "',";
+				//strsql += "'" + objUserDetails.strUserName + "',";
+				strsql += "'Ticket Generated','" + cmbSectionInchargeCode.Text + "','" + m_connectionType + "','" + cmbLoadType.Text + "','" + m_ishooking + "','" + txtVillage.Text + "','" + txtNearestLandMark.Text + "','" + txtLoadRequired.Text + "','" + cmbLoadUnits.Text + "','" + CmbComplaintSubCategory.Text + "','" + CmbComplaintSubDetails.Text + "','" + m_SourceofComplaint + "','" + txtComplaintCategory.Text + "','" + CmbComplaintType.Text + "')";
+				m_db.ExecuteNonQuery(CommandType.Text, strsql);
+
+			}
+			if (rdbNSC.Checked == true) {
+				strMessage = "Your Ticket Number is " + m_ticketNumber + " Our executive(" + cmbSectionIncharge.Text + "-" + txtSectionInchageMobile.Text + ") will get in touch with you in the next 24 hours.Customer Care 7894300300";
+				//strResponse = m_sms.SendSingleSMS(txtconsMobile.Text, strMessage);
+				strsql = "INSERT INTO tbl_sentmessage(   Mobile_number  ,Message  ,Response) VALUES (   '" + txtconsMobile.Text + "' ,'" + strMessage + "','" + strResponse + "')";
+				m_db.ExecuteNonQuery(CommandType.Text, strsql);
+			}
+			if (rdbNSC.Checked == true) {
+				strMessage = txtConsumerName.Text + "-" + txtconsMobile.Text + " Requested for NSC with TicketNumber-" + m_ticketNumber + ".Address: " + txtaddress.Text + " ," + txtVillage.Text;
+				//strResponse = m_sms.SendSingleSMS(txtSectionInchageMobile.Text, strMessage);
+				strsql = "INSERT INTO tbl_sentmessage(   Mobile_number  ,Message  ,Response) VALUES (   '" + txtSectionInchageMobile.Text + "' ,'" + strMessage + "','" + strResponse + "')";
+				m_db.ExecuteNonQuery(CommandType.Text, strsql);
+
+			} else {
+				if (cmbSection.SelectedIndex > 0) {
+					// Dim pDataset As New DataSet
+
+					cmbSectionCode.SelectedIndex = cmbSection.SelectedIndex;
+
+					//cmbSectionIncharge.Items.Clear()
+					//cmbSectionIncharge.Items.Add("--Select--")
+					//cmbSectionInchargeCode.Items.Clear()
+					//cmbSectionInchargeCode.Items.Add("--Select--")
+
+
+
+					if (CmbComplaintType.SelectedIndex == 0) {
+						pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.NoSupply=1 ");
+					} else if (CmbComplaintType.SelectedIndex == 1) {
+						pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.ConnectionRelated=1 ");
+					} else if (CmbComplaintType.SelectedIndex == 2) {
+						pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Others=1 ");
+					} else if (CmbComplaintType.SelectedIndex == 3) {
+						pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.MeterRelated=1 ");
+
+					} else if (CmbComplaintType.SelectedIndex == 4) {
+						pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.BillingRelated=1 ");
+
+					}
+					if (pDataset == null) {
+						m_db.Close();
+						m_db.Dispose();
+						// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+						Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "Subdivision Det");
+					}
+
+
+
+
+
+					if (pDataset.Tables[0].Rows.Count > 0) {
+						for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+                            strMessage = m_ticketNumber + System.Environment.NewLine + txtConsumerName.Text + "(" + txtconsMobile.Text + ") " + CmbComplaintType.Text + "-" + CmbComplaintSubCategory.Text + "-" + CmbComplaintSubDetails.Text + ".Addr: " + txtaddress.Text + " ," + txtVillage.Text;
+							//strResponse = m_sms.SendSingleSMS(pDataset.Tables[0].Rows[i]["Mobile_No"].ToString(), strMessage);
+							strsql = "INSERT INTO tbl_sentmessage(   Mobile_number  ,Message  ,Response) VALUES (   '" + txtSectionInchageMobile.Text + "' ,'" + strMessage + "','" + strResponse + "')";
+							m_db.ExecuteNonQuery(CommandType.Text, strsql);
+						}
+
+					}
+					pDataset.Dispose();
+					m_db.Dispose();
+					//   txtaddress.Focus()
+				}
+				strMessage = m_ticketNumber + System.Environment.NewLine + txtConsumerName.Text + "(" + txtconsMobile.Text + ") " + CmbComplaintType.Text + "-" + CmbComplaintSubCategory.Text + "-" + ".Addr: " + txtaddress.Text + " ," + txtVillage.Text;
+
+			}
+
+
+			m_db.Close();
+			//m_mail.SendMail(txtconsMailID.Text, txtConsumerName.Text, "test", strMessage)
+			//  ScriptManager.RegisterStartupScript(Me, [GetType](), "showalert", "alert('TICKET Saved Successfully" & vbCrLf & "Ticket Number: " & m_ticketNumber & "');", True)
+			ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('TICKET has been generated successfully');", true);
+
+			btnSubmit.Enabled = true;
+			// DisplayClientMessage("Ticket Saved Successfully.." & vbCrLf & " Ticket Number :" & m_ticketNumber)
+		}
+	}
+	private void DisplayClientMessage(string errorDesc)
+	{
+		string script = "alert('" + errorDesc + "');";
+		Page.ClientScript.RegisterStartupScript(this.GetType(), "meKey", script, true);
+	}
+
+	protected void btnCLear_Click(object sender, EventArgs e)
+	{
+		cmbDivision.SelectedIndex = 0;
+
+		cmbDivisionCode.SelectedIndex = 0;
+
+		cmbSubdivision.SelectedIndex = 0;
+
+		cmbSubdivisionCode.SelectedIndex = 0;
+
+		cmbSection.SelectedIndex = 0;
+
+		cmbSectionCode.SelectedIndex = 0;
+
+		cmbSectionIncharge.SelectedIndex = 0;
+
+		cmbSectionInchargeCode.SelectedIndex = 0;
+		txtconsMailID.Text = "";
+		txtconsMobile.Text = "";
+		txtaddress.Text = "";
+		txtConsumerName.Text = "";
+		txtcomment.Text = "";
+		txtTicketNumber.Text = "";
+		txtSectionInchageMobile.Text = "";
+		txtSetcionEmailID.Text = "";
+		txtVillage.Text = "";
+		txtNearestLandMark.Text = "";
+
+		txtConsumerAccountNumber.Text = "";
+		CmbComplaintNumber.SelectedIndex = 0;
+		CmbComplaintType.SelectedIndex = 0;
+		CmbComplaintSubCategory.SelectedIndex = 0;
+		DateTime dt =System.DateTime.Now;
+		MKB.TimePicker.TimeSelector.AmPmSpec am_pm = default(MKB.TimePicker.TimeSelector.AmPmSpec);
+		if (dt.ToString("tt") == "AM") {
+			am_pm = MKB.TimePicker.TimeSelector.AmPmSpec.AM;
+		} else {
+			am_pm = MKB.TimePicker.TimeSelector.AmPmSpec.PM;
+		}
+		txtTicketGeneratedTime.SetTime(DateTime.Now.Hour, DateTime.Now.Minute, am_pm);
+
+		txtTicketGeneratedDate.Text = DateTime.Now.ToString("dd-MM-yyyy");
+
+	}
+
+	protected  override void OnPreRender(System.EventArgs e)
+    {	
+		try {
+
+			if (ViewState["postids"].ToString() != Session["postid"].ToString()) {
+				IsPageRefresh = true;
+			} else {
+				Session["postid"] = System.Guid.NewGuid().ToString();
+				ViewState["postids"] = Session["postid"].ToString();
+			}
+           base.OnPreRender(e);
+		}
+        catch (Exception ex) {
+		}
+	}
+    
+
+    protected override void LoadViewState(object savedState)
+    {
+        object[] AllStates = (object[])savedState;
+        base.LoadViewState(AllStates[0]);
+        _refreshState = bool.Parse(AllStates[1].ToString());
+        _isRefresh = _refreshState == bool.Parse(Session["__ISREFRESH"].ToString());
+    }
+
+    protected override object SaveViewState()
+    {
+        Session["__ISREFRESH"] = _refreshState;
+        object[] AllStates = new object[2];
+        AllStates[0] = base.SaveViewState();
+        AllStates[1] = !(_refreshState);
+        return AllStates;
+    }
+
+	protected void rdbNSC_CheckedChanged(object sender, EventArgs e)
+	{
+        if (!IsPageRefresh)
+        {
+            CmbComplaintType.Enabled = false;
+            CmbComplaintSubCategory.Enabled = false;
+            CmbComplaintSubDetails.Enabled = false;
+            CmbComplaintNumber.Enabled = false;
+            txtConsumerAccountNumber.Enabled = false;
+            PanleConnection.Enabled = true;
+            cmbSection_SelectedIndexChanged("", e);
+        }
+	}
+
+
+	protected void CmbComplaintType_SelectedIndexChanged(object sender, EventArgs e)
+	{
+		DataSet pDataset = new DataSet();
+
+
+
+		m_db = new DBManager(DataProvider.Oracle);
+		m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+		m_db.Open();
+		pDataset = m_db.ExecuteDataSet(CommandType.Text, "select distinct(Complaint_subType) from tbl_complaint where Complaint_Type='" + CmbComplaintType.Text + "'");
+
+		if (pDataset == null) {
+			m_db.Close();
+			m_db.Dispose();
+			// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+			Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "Subdivision Det");
+		}
+		CmbComplaintSubCategory.Items.Clear();
+		//   CmbComplaintSubCategory.Items.Add("--Select--")
+
+
+		if (pDataset.Tables[0].Rows.Count > 0) {
+
+			for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+				CmbComplaintSubCategory.Items.Add(pDataset.Tables[0].Rows[i][0].ToString());
+				// CmbComplaintSubCategory.Items.Add(pDataset.Tables(0).Rows(i)(2))
+			}
+
+		}
+		CmbComplaintSubCategory_SelectedIndexChanged("", e);
+		if (cmbSection.SelectedIndex > 0) {
+			// Dim pDataset As New DataSet
+
+			cmbSectionCode.SelectedIndex = cmbSection.SelectedIndex;
+
+			cmbSectionIncharge.Items.Clear();
+			cmbSectionIncharge.Items.Add("--Select--");
+			cmbSectionInchargeCode.Items.Clear();
+			cmbSectionInchargeCode.Items.Add("--Select--");
+
+			m_db = new DBManager(DataProvider.Oracle);
+			m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+			m_db.Open();
+
+			if (CmbComplaintType.SelectedIndex == 0) {
+				pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.NoSupply=1 ");
+			} else if (CmbComplaintType.SelectedIndex == 1) {
+				pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.ConnectionRelated=1 ");
+			} else if (CmbComplaintType.SelectedIndex == 2) {
+				pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Others=1 ");
+			} else if (CmbComplaintType.SelectedIndex == 3) {
+				pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.MeterRelated=1 ");
+
+			} else if (CmbComplaintType.SelectedIndex == 4) {
+				pDataset = m_db.ExecuteDataSet(CommandType.Text, "select tbl_employee.Employee_code,tbl_employee.Employee_Name,tbl_employee.Mobile_No,tbl_employee.Email_Id from tbl_employee,tbl_crm_emp_section where tbl_employee.Employee_code=tbl_crm_emp_section.Employee_code and tbl_crm_emp_section.div_code='" + cmbDivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.sub_div_code='" + cmbSubdivisionCode.SelectedItem.Text + "' and tbl_crm_emp_section.Sec_code='" + cmbSectionCode.SelectedItem.Text + "' and tbl_crm_emp_section.BillingRelated=1 ");
+
+			}
+			if (pDataset == null) {
+				m_db.Close();
+				m_db.Dispose();
+				// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+				Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "Subdivision Det");
+			}
+
+
+
+
+
+			if (pDataset.Tables[0].Rows.Count > 0) {
+				for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+					cmbSectionIncharge.Items.Add(pDataset.Tables[0].Rows[i]["Employee_Name"].ToString());
+					cmbSectionInchargeCode.Items.Add(pDataset.Tables[0].Rows[i]["Employee_code"].ToString());
+				}
+				cmbSectionIncharge.SelectedIndex = 1;
+				cmbSectionIncharge_SelectedIndexChanged("", e);
+			}
+
+			//   txtaddress.Focus()
+		}
+		pDataset.Dispose();
+		m_db.Dispose();
+		CmbComplaintType.Focus();
+
+
+
+	}
+
+	protected void CmbComplaintNumber_SelectedIndexChanged(object sender, EventArgs e)
+	{
+		if (CmbComplaintNumber.SelectedIndex > 0) {
+			DataSet pDataset = new DataSet();
+
+
+
+			m_db = new DBManager(DataProvider.Oracle);
+			m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+			m_db.Open();
+			pDataset = m_db.ExecuteDataSet(CommandType.Text, "select Complaint_Type,Complaint_subType,Complaint_Details,Complaint_category from tbl_complaint where Complaint_number='" + CmbComplaintNumber.SelectedItem.Text + "'");
+
+			if (pDataset == null) {
+				m_db.Close();
+				m_db.Dispose();
+				// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+				Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "Subdivision Det");
+			}
+
+
+
+			if (pDataset.Tables[0].Rows.Count > 0) {
+				for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+					CmbComplaintType.Text = pDataset.Tables[0].Rows[i][0].ToString();
+					CmbComplaintType_SelectedIndexChanged("", e);
+					CmbComplaintSubCategory.Text = pDataset.Tables[0].Rows[i][1].ToString();
+					CmbComplaintSubCategory_SelectedIndexChanged("", e);
+					if (CmbComplaintSubDetails.Items.Count > 0) {
+						CmbComplaintSubDetails.Text = pDataset.Tables[0].Rows[i][2].ToString();
+					}
+					txtComplaintCategory.Text = pDataset.Tables[0].Rows[i][3].ToString();
+					// CmbComplaintSubCategory_SelectedIndexChanged("", e)
+					// CmbComplaintSubCategory.Items.Add(pDataset.Tables(0).Rows(i)(1))
+					// CmbComplaintSubCategory.Items.Add(pDataset.Tables(0).Rows(i)(2))
+				}
+
+			}
+			pDataset.Dispose();
+			m_db.Dispose();
+			CmbComplaintType.Focus();
+		}
+	}
+
+	protected void CmbComplaintSubCategory_SelectedIndexChanged(object sender, EventArgs e)
+	{
+		// If CmbComplaintSubCategory.SelectedIndex > 0 Then
+		DataSet pDataset = new DataSet();
+		m_db = new DBManager(DataProvider.Oracle);
+		m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+		m_db.Open();
+		pDataset = m_db.ExecuteDataSet(CommandType.Text, "select Complaint_Details,Complaint_category from tbl_complaint where Complaint_subType='" + CmbComplaintSubCategory.SelectedItem.Text + "' and Complaint_Details is not null");
+
+		if (pDataset == null) {
+			m_db.Close();
+			m_db.Dispose();
+			// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+			Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "Subdivision Det");
+		}
+		CmbComplaintSubDetails.Items.Clear();
+
+
+		if (pDataset.Tables[0].Rows.Count > 0) {
+			CmbComplaintSubDetails.Enabled = true;
+
+			for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+				CmbComplaintSubDetails.Items.Add(pDataset.Tables[0].Rows[i][0].ToString());
+				// CmbComplaintSubCategory.Items.Add(pDataset.Tables(0).Rows(i)(2))
+			}
+		} else {
+			CmbComplaintSubDetails.Enabled = false;
+		}
+		pDataset.Dispose();
+		m_db.Dispose();
+
+		//   End If
+	}
+
+	protected void rdbOther_CheckedChanged(object sender, EventArgs e)
+	{
+		CmbComplaintType.Enabled = true;
+		CmbComplaintSubCategory.Enabled = true;
+		CmbComplaintSubDetails.Enabled = true;
+		CmbComplaintNumber.Enabled = true;
+		PanleConnection.Enabled = false;
+
+		txtConsumerAccountNumber.Enabled = true;
+		cmbSection_SelectedIndexChanged("", e);
+	}
+
+	protected void rdbTemporary_CheckedChanged(object sender, EventArgs e)
+	{
+		if (rdbTemporary.Checked) {
+			tmppanel.Enabled = true;
+			DateTime dt = DateTime.Now;
+			MKB.TimePicker.TimeSelector.AmPmSpec am_pm = default(MKB.TimePicker.TimeSelector.AmPmSpec);
+			if (dt.ToString("tt") == "AM") {
+				am_pm = MKB.TimePicker.TimeSelector.AmPmSpec.AM;
+			} else {
+				am_pm = MKB.TimePicker.TimeSelector.AmPmSpec.PM;
+			}
+			fromtimepicker.SetTime(DateTime.Now.Hour, DateTime.Now.Minute, am_pm);
+			totimepicker.SetTime(DateTime.Now.Hour, DateTime.Now.Minute, am_pm);
+			txtFromDate.Text = DateTime.Now.ToString("dd-MM-yyyy");
+			txtToDate.Text = DateTime.Now.ToString("dd-MM-yyyy");
+		} else {
+			tmppanel.Enabled = false;
+
+		}
+	}
+
+	protected void rdbHooking_CheckedChanged(object sender, EventArgs e)
+	{
+		if (rdbHooking.Checked) {
+			tmppanel.Enabled = false;
+		} else {
+			tmppanel.Enabled = true;
+		}
+	}
+
+	protected void rdbRegular_CheckedChanged(object sender, EventArgs e)
+	{
+		if (rdbRegular.Checked) {
+			tmppanel.Enabled = false;
+		} else {
+			tmppanel.Enabled = true;
+		}
+	}
+
+   
+}

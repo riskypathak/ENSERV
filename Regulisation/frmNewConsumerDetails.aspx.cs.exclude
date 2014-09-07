@@ -1,0 +1,682 @@
+﻿using DataAccessLayer;
+using System;
+using System.Globalization;
+using System.Web.UI;
+using Utilities;
+using System.Data.OleDb;
+using MKB;
+using System.Data;
+using System.Web.UI.WebControls;
+using System.Text;
+
+
+public partial class Regulisation_frmNewConsumerDetails : System.Web.UI.Page
+{
+    IDBManager m_db;
+    int iRecordsFetched;
+    public string listFilter = "";
+    StringBuilder output = new StringBuilder();
+  
+    bool IsPageRefresh;
+    protected void Page_Load(object sender, System.EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            DataSet pDataset = new DataSet();
+            m_db = new DBManager(DataProvider.Oracle);
+            m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString.ToString();
+            m_db.Open();
+            pDataset = m_db.ExecuteDataSet(CommandType.Text, "select division_code,div_name from tbl_division");
+
+            if (pDataset == null)
+            {
+                m_db.Close();
+                m_db.Dispose();              
+                Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "division Det");
+            }
+
+        
+
+            cmbDivision.Items.Add("--Select--");
+            cmbDivisioncode.Items.Add("--Select--"); 
+            cmbSubdivision.Items.Add("--Select--");
+            cmbSubdivisioncode.Items.Add("--Select--");            
+            cmbSection.Items.Add("--Select--");
+
+            if (pDataset.Tables[0].Rows.Count > 0)
+            {
+                for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++)
+                {
+                    cmbDivision.Items.Add(pDataset.Tables[0].Rows[i]["div_name"].ToString());
+                    cmbDivisioncode.Items.Add(pDataset.Tables[0].Rows[i]["division_code"].ToString());
+                }
+
+            }
+            pDataset = m_db.ExecuteDataSet(CommandType.Text, "select custgroup  from tbl_customergroup");
+
+            if (pDataset == null)
+            {
+                m_db.Close();
+                m_db.Dispose();
+                // strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+                Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "division Det");
+            }
+            if (pDataset.Tables[0].Rows.Count > 0)
+            {
+                for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++)
+                {
+                    cmbCategory.Items.Add(pDataset.Tables[0].Rows[i]["custgroup"].ToString());
+
+                }
+
+            }
+            listFilter = BindName();
+            pDataset.Dispose();
+            m_db.Close();
+            m_db.Dispose();
+            Session["AutoComplete"] = output.ToString();
+            ViewState["postids"] = Guid.NewGuid();
+            Session["postid"] = ViewState["postids"].ToString();
+
+        }
+        CUSERDetails objCUSERDetails = new CUSERDetails();
+
+
+        objCUSERDetails = (CUSERDetails)Session["sesuUserDetails"];
+
+        if (objCUSERDetails == null)
+        {
+
+            Response.Write("<script>alert('Session Expired');document.location.href='Login.aspx';</script>");
+            // if user entered not through the loginpage he has no permissions to view this
+            return;
+
+        }
+        listFilter = Session["AutoComplete"].ToString();
+    }
+    private string BindName()
+    {
+        DataSet pDataset = new DataSet();
+        
+        pDataset = m_db.ExecuteDataSet(CommandType.Text, "select TicketNumber  from tbl_ticketmaster");
+        if (pDataset == null)
+        {
+            m_db.Close();
+            m_db.Dispose();
+            // strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+            Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "division Det");
+        }
+
+
+
+        output.Append("[");
+        for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++)
+        {
+            output.Append("" + (char)34 + pDataset.Tables[0].Rows[i]["TicketNumber"].ToString() + "" + (char)34);
+
+            if (i != (pDataset.Tables[0].Rows.Count - 1))
+            {
+                output.Append(",");
+            }
+        }
+        output.Append("];");
+        return output.ToString();
+    }
+    protected void cmbDivision_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        if (cmbDivision.SelectedIndex > 0)
+        {
+            DataSet pDataset = new DataSet();
+            cmbDivisioncode.SelectedIndex = cmbDivision.SelectedIndex;
+            cmbSubdivision.Items.Clear();
+            cmbSubdivision.Items.Add("--Select--");
+            cmbSubdivisioncode.Items.Clear();
+            cmbSubdivisioncode.Items.Add("--Select--");
+            cmbSection.Items.Clear();
+            cmbSection.Items.Add("--Select--");
+            cmbSectioncode.Items.Clear();
+            cmbSectioncode.Items.Add("--Select--");
+
+
+
+            m_db = new DBManager(DataProvider.Oracle);
+            m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+            m_db.Open();
+            pDataset = m_db.ExecuteDataSet(CommandType.Text, "select sub_div_code,sub_div_name from tbl_sub_division where division_code='" + cmbDivisioncode.SelectedItem.Text + "'");
+
+            if (pDataset == null)
+            {
+                m_db.Close();
+                m_db.Dispose();
+                // strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+                Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "Subdivision Det");
+            }
+
+
+
+            if (pDataset.Tables[0].Rows.Count > 0)
+            {
+                for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++)
+                {
+                    cmbSubdivision.Items.Add(pDataset.Tables[0].Rows[i]["sub_div_name"].ToString());
+                    cmbSubdivisioncode.Items.Add(pDataset.Tables[0].Rows[i]["sub_div_code"].ToString());
+                }
+
+            }
+            pDataset.Dispose();
+            m_db.Dispose();
+            cmbSubdivision.Focus();
+        }
+    }
+
+    public object FillZero(object m_value)
+    {
+        if (object.ReferenceEquals(m_value, DBNull.Value))
+        {
+            return 0;
+        }
+        else
+        {
+            return m_value;
+        }
+    }
+    public object SelectDefault(object m_value)
+    {
+        if (object.ReferenceEquals(m_value, DBNull.Value))
+        {
+            return 0;
+        }
+        else
+        {
+            return m_value;
+        }
+    }
+    public string FillSPACE(object m_value)
+    {
+        if (m_value == null)
+        {
+            return " ";
+        }
+        else
+        {
+            return m_value.ToString();
+        }
+    }
+    public enum enumObjectType
+    {
+        StrType = 0,
+        IntType = 1,
+        DblType = 2
+    }
+    public object CheckDBNull(object obj, enumObjectType ObjectType = enumObjectType.StrType)
+    {
+        object objReturn = null;
+        objReturn = obj;
+        if (ObjectType == enumObjectType.StrType & Convert.IsDBNull(obj))
+        {
+            objReturn = " ";
+        }
+        else if (ObjectType == enumObjectType.IntType & Convert.IsDBNull(obj))
+        {
+            objReturn = 0;
+        }
+        else if (ObjectType == enumObjectType.DblType & Convert.IsDBNull(obj))
+        {
+            objReturn = 0.0;
+        }
+        return objReturn;
+    }
+    protected void cmbSubdivision_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        
+        if (cmbDivision.SelectedIndex > 0)
+        {
+            DataSet pDataset = new DataSet();
+            cmbSubdivisioncode.SelectedIndex = cmbSubdivision.SelectedIndex;
+
+
+            cmbSection.Items.Clear();
+            cmbSection.Items.Add("--Select--");
+            cmbSectioncode.Items.Clear();
+            cmbSectioncode.Items.Add("--Select--");
+
+            m_db = new DBManager(DataProvider.Oracle);
+            m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+            m_db.Open();
+            pDataset = m_db.ExecuteDataSet(CommandType.Text, "select sec_code,sec_name from tbl_section where div_code='" + cmbDivisioncode.SelectedItem.Text + "' and sub_div_code='" + cmbSubdivisioncode.SelectedItem.Text + "'");
+
+            if (pDataset == null)
+            {
+                m_db.Close();
+                m_db.Dispose();
+                // strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+                Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "Subdivision Det");
+            }
+
+
+
+
+            if (pDataset.Tables[0].Rows.Count > 0)
+            {
+                for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++)
+                {
+                    cmbSection.Items.Add(pDataset.Tables[0].Rows[i]["sec_name"].ToString());
+                    cmbSectioncode.Items.Add(pDataset.Tables[0].Rows[i]["sec_code"].ToString());
+                }
+
+            }
+            pDataset.Dispose();
+            m_db.Dispose();
+            cmbSection.Focus();
+        }
+    }
+
+
+
+
+
+    protected void chk_addr_CheckedChanged(object sender, EventArgs e)
+    {
+        txtBlock.Text = txtBlock1.Text;
+        txtBuilding.Text = txtBuilding1.Text;
+        txtCity.Text = txtCity1.Text;
+        txtDistrict.Text = txtDistrict1.Text;
+        txtGP.Text = txtGP1.Text;
+        txtPlot.Text = txtPlot1.Text;
+        txtStreet.Text = txtStreet1.Text;
+        txtTehsil.Text = txtTehsil1.Text;
+        txtVillage.Text = txtVillage1.Text;
+    }
+
+
+
+    protected void btnSave_Click(object sender, EventArgs e)
+    {
+        string strsql = null;
+
+        if (string.IsNullOrEmpty(string.Format("{0}", Request.Form["cmbTicketNumber"].ToString())))
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Ticket Number');", true);
+            return;
+        }
+        if (string.IsNullOrEmpty(txtApplicationNumber.Text))
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Application Number');", true);
+            return;
+        }
+        if (string.IsNullOrEmpty(txtconsMobile.Text))
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Registered Mobile Number');", true);
+            return;
+        }
+        if (string.IsNullOrEmpty(txtLoadRequired.Text))
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Load Required');", true);
+            return;
+        }
+        if (cmbDivision.SelectedIndex == 0)
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Select Division name');", true);
+            return;
+        }
+        if (cmbSubdivision.SelectedIndex == 0)
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Select SUb Division name');", true);
+            return;
+        }
+        if (cmbSection.SelectedIndex == 0)
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Select Section');", true);
+            return;
+        }
+        if (string.IsNullOrEmpty(txtConsumerName.Text))
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Consumer/Company Name');", true);
+            return;
+        }
+        if (string.IsNullOrEmpty(txtFatherName.Text))
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Father/Authorised name');", true);
+            return;
+        }
+        if (string.IsNullOrEmpty(txtBlock1.Text))
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Block');", true);
+            return;
+        }
+        if (string.IsNullOrEmpty(txtStreet1.Text))
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Street');", true);
+            return;
+        }
+        if (string.IsNullOrEmpty(txtBuilding1.Text))
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Building Name');", true);
+            return;
+        }
+        if (string.IsNullOrEmpty(txtCity1.Text))
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter City');", true);
+            return;
+        }
+        if (string.IsNullOrEmpty(txtDistrict1.Text))
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter District');", true);
+            return;
+        }
+        if (string.IsNullOrEmpty(txtGP1.Text))
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter GP');", true);
+            return;
+        }
+        if (string.IsNullOrEmpty(txtPlot1.Text))
+        {
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Plot');", true);
+            return;
+        }
+        btnsave.Enabled = false;
+        
+        CUSERDetails objCUSERDetails = new CUSERDetails();
+        objCUSERDetails = (CUSERDetails)Session["sesuUserDetails"];
+        m_db = new DBManager(DataProvider.Oracle);
+        m_db.ConnectionString =System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+        m_db.Open();
+
+        if (m_db.Connection.State == ConnectionState.Open)
+        {
+            strsql += "UPDATE tbl_ticketmaster ";
+            strsql += "SET";
+            strsql += "  CustGroup = '" + cmbCategory.Text + "' ";
+            strsql += "  ,FatherName = '" + txtFatherName.Text + "' ";
+            strsql += "  ,ApplicationNo = '" + txtApplicationNumber.Text + "' ";
+            strsql += "  ,Ownership = '" + cmbOwnership.Text + "' ";
+            strsql += "  ,PANCode = '" + txtPAN.Text + "' ";
+            strsql += "  ,Phase = '" + cmbLoadType.Text + "' ";
+            strsql += "  ,LoadRequired = '" + txtLoadRequired.Text + "' ";
+            strsql += "  ,RequiredLoadUnit = '" + cmbLoadUnits.Text + "' ";
+
+            strsql += "  ,SupplyLevel = '" + cmbSupplyLevel.Text + "' ";
+            strsql += "   ,md_code = '000001' ";
+            strsql += "  ,Div_code = '" + cmbDivisioncode.Text + "'";
+            strsql += "  ,Sub_div_code = '" + cmbSubdivisioncode.Text + "' ";
+            strsql += "  ,sec_code = '" + cmbSectioncode.Text + "' ";
+            strsql += "  ,Sec_Name = '" + cmbSection.Text + "' ";
+            strsql += "  ,NewFirstName = '" + txtConsumerName.Text + "' ";
+            strsql += "   ,ApplicationStatus = 'Application Received' ";
+            strsql += "  ,ApplicationDate = Now()";
+            strsql += "  ,IsApproved = 1 ";
+            strsql += "  ,IsValidate = 1 ";
+            strsql += "    ,modifiedDateTime = Now() ";
+            strsql += "  ,modifiedBy = '" + objCUSERDetails.strUserName + "' ";
+            strsql += "    ,co_code ='000001' ";
+            strsql += "  ,discom_code = '000001' ";
+            strsql += "  ,circle_code = '000001' ";
+            strsql += "  ,Mobile_number = '" + txtconsMobile.Text + "' ";
+            strsql += "  ,EmaiL_ID = '" + txtconsMailID.Text + "' ";
+            strsql += "    ,Block = '" + txtBlock.Text + "' ";
+            strsql += "  ,Building = '" + txtBuilding.Text + "' ";
+            strsql += "  ,City = '" + txtCity.Text + "' ";
+            strsql += "  ,District = '" + txtDistrict.Text + "' ";
+            strsql += "  ,GP = '" + txtGP.Text + "' ";
+            strsql += "  ,PLOT = '" + txtPlot.Text + "' ";
+            strsql += "  ,Street = '" + txtStreet.Text + "' ";
+            strsql += "  ,Tehsil = '" + txtTehsil.Text + "' ";
+            strsql += "  ,Village = '" + txtVillage.Text + "' ";
+            strsql += "    ,Block1 = '" + txtBlock1.Text + "' ";
+            strsql += "  ,Building1 = '" + txtBuilding1.Text + "' ";
+            strsql += "  ,City1 = '" + txtCity1.Text + "' ";
+            strsql += "  ,District1 = '" + txtDistrict1.Text + "' ";
+            strsql += "  ,GP1 = '" + txtGP1.Text + "' ";
+            strsql += "  ,PLOT1 = '" + txtPlot1.Text + "' ";
+            strsql += "  ,Street1 = '" + txtStreet1.Text + "' ";
+            strsql += "  ,Tehsil1 = '" + txtTehsil1.Text + "' ";
+            strsql += "  ,Village1 = '" + txtVillage1.Text + "' ";
+            strsql += "  WHERE TicketNumber = '" + string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()) + "'";
+            m_db.ExecuteNonQuery(CommandType.Text, strsql);
+            m_db.Close();
+            //m_mail.SendMail(txtconsMailID.Text, txtConsumerName.Text, "test", strMessage)
+            ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Application Saved Successfully');", true);
+
+            btnsave.Enabled = true;
+        }
+    }
+
+    protected void btnView_Click(object sender, EventArgs e)
+    {
+        if (!string.IsNullOrEmpty(string.Format("{0}",Request.Form["cmbTicketNumber"].ToString())))
+        {
+            DataSet pDataset = new DataSet();
+
+            m_db = new DBManager(DataProvider.Oracle);
+            m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+            m_db.Open();
+            pDataset = m_db.ExecuteDataSet(CommandType.Text, "SELECT * from tbl_ticketmaster where TicketNumber='" + string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()) + "'");
+
+            if (pDataset == null)
+            {
+                m_db.Close();
+                m_db.Dispose();
+                // strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+                Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "Subdivision Det");
+            }
+
+
+            if (pDataset.Tables[0].Rows.Count > 0)
+            {
+                if (Convert.ToBoolean(pDataset.Tables[0].Rows[0]["IsApproved"].ToString()) == true)
+                {
+                    txtConsumerName.Text = pDataset.Tables[0].Rows[0]["NewFirstName"].ToString();
+                    txtconsMailID.Text = pDataset.Tables[0].Rows[0]["EmaiL_ID"].ToString();
+                    txtconsMobile.Text = pDataset.Tables[0].Rows[0]["Mobile_number"].ToString();
+                    txtFatherName.Text = pDataset.Tables[0].Rows[0]["FatherName"].ToString();
+                    txtLoadRequired.Text = CheckDBNull(pDataset.Tables[0].Rows[0]["LoadRequired"], enumObjectType.DblType).ToString();
+                    txtPAN.Text = CheckDBNull(pDataset.Tables[0].Rows[0]["PANCode"]).ToString();
+
+                    cmbLoadType.Text = pDataset.Tables[0].Rows[0]["Phase"].ToString();
+                    cmbCategory.Text = pDataset.Tables[0].Rows[0]["CustGroup"].ToString();
+                    cmbLoadUnits.Text = pDataset.Tables[0].Rows[0]["RequiredLoadUnit"].ToString();
+                    cmbOwnership.Text = pDataset.Tables[0].Rows[0]["Ownership"].ToString();
+                    cmbSupplyLevel.Text = pDataset.Tables[0].Rows[0]["SupplyLevel"].ToString();
+                    txtApplicationNumber.Text = pDataset.Tables[0].Rows[0]["ApplicationNo"].ToString();
+                    cmbDivisioncode.Text = pDataset.Tables[0].Rows[0]["Div_code"].ToString();
+                    cmbDivision.SelectedIndex = cmbDivisioncode.SelectedIndex;
+                    cmbDivision_SelectedIndexChanged("", e);
+                    cmbSubdivisioncode.Text = pDataset.Tables[0].Rows[0]["Sub_div_code"].ToString();
+                    cmbSubdivision.SelectedIndex = cmbSubdivisioncode.SelectedIndex;
+                    cmbSubdivision_SelectedIndexChanged("", e);
+                    cmbSectioncode.Text = pDataset.Tables[0].Rows[0]["sec_code"].ToString();
+                    cmbSection.SelectedIndex = cmbSectioncode.SelectedIndex;
+
+                    cmbConnectionType.SelectedIndex = 0;
+
+
+                    txtBlock.Text = CheckDBNull(pDataset.Tables[0].Rows[0]["Block"]).ToString();
+                    txtBuilding.Text = CheckDBNull( pDataset.Tables[0].Rows[0]["Building"]).ToString();
+                    txtCity.Text = CheckDBNull( pDataset.Tables[0].Rows[0]["City"]).ToString();
+                    txtDistrict.Text = CheckDBNull( pDataset.Tables[0].Rows[0]["District"]).ToString();
+                    txtGP.Text = CheckDBNull( pDataset.Tables[0].Rows[0]["GP"]).ToString();
+                    txtPlot.Text = CheckDBNull( pDataset.Tables[0].Rows[0]["Plot"]).ToString();
+                    txtStreet.Text = CheckDBNull( pDataset.Tables[0].Rows[0]["Street"]).ToString();
+                    txtTehsil.Text = CheckDBNull( pDataset.Tables[0].Rows[0]["Tehsil"]).ToString();
+                    txtVillage.Text = CheckDBNull(pDataset.Tables[0].Rows[0]["Village"]).ToString();
+
+                    txtBlock1.Text = CheckDBNull(pDataset.Tables[0].Rows[0]["Block1"]).ToString();
+                    txtBuilding1.Text = CheckDBNull(pDataset.Tables[0].Rows[0]["Building1"]).ToString();
+                    txtCity1.Text = CheckDBNull(pDataset.Tables[0].Rows[0]["City1"]).ToString();
+                    txtDistrict1.Text = CheckDBNull(pDataset.Tables[0].Rows[0]["District1"]).ToString();
+                    txtGP1.Text = CheckDBNull(pDataset.Tables[0].Rows[0]["GP1"]).ToString();
+                    txtPlot1.Text = CheckDBNull(pDataset.Tables[0].Rows[0]["Plot1"]).ToString();
+                    txtStreet1.Text = CheckDBNull(pDataset.Tables[0].Rows[0]["Street1"]).ToString();
+                    txtTehsil1.Text = CheckDBNull(pDataset.Tables[0].Rows[0]["Tehsil1"]).ToString();
+                    txtVillage1.Text = CheckDBNull(pDataset.Tables[0].Rows[0]["Village1"]).ToString();
+                }
+                else
+                {
+                    txtConsumerName.Text = pDataset.Tables[0].Rows[0]["NewFirstName"].ToString();
+                    txtconsMailID.Text = pDataset.Tables[0].Rows[0]["EmaiL_ID"].ToString();
+                    txtconsMobile.Text = pDataset.Tables[0].Rows[0]["Mobile_number"].ToString();
+
+                    txtLoadRequired.Text = CheckDBNull(pDataset.Tables[0].Rows[0]["LoadRequired"], enumObjectType.DblType).ToString();
+                    cmbDivisioncode.Text = pDataset.Tables[0].Rows[0]["Div_code"].ToString();
+                    cmbDivision.SelectedIndex = cmbDivisioncode.SelectedIndex;
+                    cmbDivision_SelectedIndexChanged("", e);
+                    cmbSubdivisioncode.Text = pDataset.Tables[0].Rows[0]["Sub_div_code"].ToString();
+                    cmbSubdivision.SelectedIndex = cmbSubdivisioncode.SelectedIndex;
+                    cmbSubdivision_SelectedIndexChanged("", e);
+                    cmbSectioncode.Text = pDataset.Tables[0].Rows[0]["sec_code"].ToString();
+                    cmbSection.SelectedIndex = cmbSectioncode.SelectedIndex;
+
+
+
+                    txtFatherName.Text = "";
+                    //pDataset.Tables[0].Rows[0]["FatherName")
+                    txtLoadRequired.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["LoadRequired"), enumObjectType.DblType)
+                    txtPAN.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["PANCode"))
+
+
+                    txtApplicationNumber.Text = "";
+                    //pDataset.Tables[0].Rows[0]["ApplicationNo")
+
+
+                    txtBlock.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["Block"))
+                    txtBuilding.Text = "";
+                    // CheckDBNull(pDataset.Tables[0].Rows[0]["Building"))
+                    txtCity.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["City"))
+                    txtDistrict.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["District"))
+                    txtGP.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["GP"))
+                    txtPlot.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["Plot"))
+                    txtStreet.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["Street"))
+                    txtTehsil.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["Tehsil"))
+                    txtVillage.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["Village"))
+
+                    txtBlock1.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["Block1"))
+                    txtBuilding1.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["Building1"))
+                    txtCity1.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["City1"))
+                    txtDistrict1.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["District1"))
+                    txtGP1.Text = "";
+                    // CheckDBNull(pDataset.Tables[0].Rows[0]["GP1"))
+                    txtPlot1.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["Plot1"))
+                    txtStreet1.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["Street1"))
+                    txtTehsil1.Text = "";
+                    //CheckDBNull(pDataset.Tables[0].Rows[0]["Tehsil1"))
+                    txtVillage1.Text = "";
+                    //CheckDBNul
+                }
+
+            }
+            else
+            {
+                ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Ticket Details Not Found');", true);
+                txtFatherName.Text = "";
+                //pDataset.Tables[0].Rows[0]["FatherName")
+                txtLoadRequired.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["LoadRequired"), enumObjectType.DblType)
+                txtPAN.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["PANCode"))
+                txtConsumerName.Text = "";
+                //pDataset.Tables[0].Rows[0]["NewFirstName")
+                txtconsMailID.Text = "";
+                // pDataset.Tables[0].Rows[0]["EmaiL_ID")
+                txtconsMobile.Text = "";
+                //
+
+                txtApplicationNumber.Text = "";
+                //pDataset.Tables[0].Rows[0]["ApplicationNo")
+
+
+                txtBlock.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["Block"))
+                txtBuilding.Text = "";
+                // CheckDBNull(pDataset.Tables[0].Rows[0]["Building"))
+                txtCity.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["City"))
+                txtDistrict.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["District"))
+                txtGP.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["GP"))
+                txtPlot.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["Plot"))
+                txtStreet.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["Street"))
+                txtTehsil.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["Tehsil"))
+                txtVillage.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["Village"))
+
+                txtBlock1.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["Block1"))
+                txtBuilding1.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["Building1"))
+                txtCity1.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["City1"))
+                txtDistrict1.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["District1"))
+                txtGP1.Text = "";
+                // CheckDBNull(pDataset.Tables[0].Rows[0]["GP1"))
+                txtPlot1.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["Plot1"))
+                txtStreet1.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["Street1"))
+                txtTehsil1.Text = "";
+                //CheckDBNull(pDataset.Tables[0].Rows[0]["Tehsil1"))
+                txtVillage1.Text = "";
+                //CheckDBNul
+
+            }
+            pDataset.Dispose();
+            m_db.Close();
+            m_db.Dispose();
+        }
+    }
+
+    protected void cmbLoadType_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        switch (cmbLoadType.SelectedIndex)
+        {
+            case 0:
+                cmbSupplyLevel.Enabled = false;
+                break;
+            default:
+
+                break;
+        }
+    }
+
+
+    private void ConsumerDetails_PreRender(object sender, EventArgs e)
+    {
+
+        if (ViewState["postids"].ToString() != Session["postid"].ToString())
+        {
+            IsPageRefresh = true;
+        }
+        else
+        {
+            Session["postid"] = Guid.NewGuid(); 
+            ViewState["postids"] = Session["postid"].ToString();
+        }
+
+    }
+
+    protected void cmbSection_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        cmbSectioncode.SelectedIndex = cmbSection.SelectedIndex;
+    }   
+}
+

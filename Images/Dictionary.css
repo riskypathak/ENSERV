@@ -1,0 +1,38 @@
+body {
+	background: #FFFFFF; 
+	font-family: Verdana, Arial, Helvetica;
+	font-size: 10pt;
+}
+a {
+	color: #666699;
+}
+li {
+	margin-top: 3;
+}
+h1 {
+	font-size: 18pt;
+}
+h2 {
+	font-size: 14pt;
+}
+h3 {
+	font-size: 12pt;
+}
+table {
+	font-family: Arial, Verdana, Helvetica;		
+	border-color: #000000;
+	border-collapse: collapse;
+	font-size: 9pt;
+}
+th #disMainId{
+	color: white;
+	background-color: #3366ff;
+}
+td #disMainId{
+	border: 1px solid #888888;
+}
+.style4 {
+	font-size: 24px;
+	font-family: Georgia, "Times New Roman", Times, serif, sans-serif;
+	color: #666666;
+}

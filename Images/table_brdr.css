@@ -1,0 +1,22 @@
+.brdr_table {
+	BORDER-RIGHT: #6699cc 1px solid; BORDER-TOP: #6699cc 1px solid; BORDER-LEFT: #6699cc 1px solid; BORDER-BOTTOM: #6699cc 1px solid
+}
+.leftnav_links {
+	FONT-WEIGHT: normal; FONT-SIZE: 12px; COLOR: #DDD8C6; FONT-FAMILY: Calibri
+}
+.leftnav_mainlinks {
+	FONT-WEIGHT: bold; FONT-SIZE: 12px; COLOR: #ffffff; FONT-FAMILY: Tahoma, Verdana, Arial
+}
+.leftnav_links_Bold {
+	FONT-WEIGHT: bold; FONT-SIZE: 10px; COLOR: #6633cc; FONT-FAMILY: Tahoma, Verdana, Arial
+}
+.brdr_table_gray {
+	BORDER-RIGHT: #cccccc 1px solid; BORDER-TOP: #cccccc 1px solid; BORDER-LEFT: #cccccc 1px solid; BORDER-BOTTOM: #cccccc 1px solid
+}
+.brdr_table_dark_gray {
+	BORDER-RIGHT: #666666 1px solid; BORDER-TOP: #666666 1px solid; BORDER-LEFT: #666666 1px solid; BORDER-BOTTOM: #666666 1px solid
+}
+.leftnav_links_Hide {
+
+	FONT-WEIGHT: normal; FONT-SIZE: 12px; COLOR: #DDD8C6; FONT-FAMILY: Tahoma, Verdana, Arial
+}

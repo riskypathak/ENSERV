@@ -1,0 +1,50 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.UI;
+using System.Web.UI.WebControls;
+
+public partial class Regulisation_frmNameChange : System.Web.UI.Page
+{
+    protected void Page_Load(object sender, EventArgs e)
+    {
+        if (!IsPostBack)
+        {
+            btnSubmit.Enabled = false;
+            btnclose.Enabled = false;
+            string value = Request.QueryString["val"];
+            if (value == "1")
+            {
+                lblheader.Text = "Name Change";
+            }
+        }
+        
+    }
+    protected void btngetdata_Click(object sender, EventArgs e)
+    {
+        Enabledisablecontrol();
+    }
+
+    protected void Enabledisablecontrol()
+    {
+        txtsupplytype.Enabled = false;
+        ddlsupplylevel.Enabled = false;
+        txtcustomeraccount.Enabled = false;
+        txtconnectionid.Enabled = false;
+        txtapplicationtype.Enabled = false;
+        txtownership.Enabled = false;
+        txtexisting.Enabled = false;
+        txtrequired.Enabled = false;
+        txtunitofmeasure.Enabled = false;
+        //tblsupplydetail.Disabled = true;
+        txtcustomername.Enabled = false;
+        txtcustomergroup.Enabled = false;
+        txtcustomergroupname.Enabled = false;
+        txtaddress.Enabled = false;
+        txttelephone.Enabled = false;
+        txtfirstname.Focus();
+        txtdivision.Enabled = false;
+        txtsubdivision.Enabled = false;
+    }
+}

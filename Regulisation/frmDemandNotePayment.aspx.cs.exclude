@@ -1,0 +1,515 @@
+﻿using Microsoft.VisualBasic;
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data;
+using System.Diagnostics;
+using DataAccessLayer;
+using CrystalDecisions.Shared;
+using CrystalDecisions.CrystalReports;
+using CrystalDecisions.CrystalReports.Engine;
+using System.Globalization;
+using System.Text;
+using Utilities;
+using System.Configuration;
+using System.Web.UI;
+
+public partial class Regulisation_frmDemandNotePayment : System.Web.UI.Page
+{
+	IDBManager m_db;
+	int iRecordsFetched;
+	ParameterFields crParameterFields = new ParameterFields();
+	ParameterField crParameterField = new ParameterField();
+	ParameterDiscreteValue crParameterDiscreteValue = new ParameterDiscreteValue();
+	ParameterValues paramValues = new ParameterValues();
+	string m_consnumber = "";
+	public ReportDocument report = new ReportDocument();
+	StringBuilder output = new StringBuilder();
+	public string listFilter = "";
+	bool IsPageRefresh;
+	CSMS m_sms = new CSMS();	
+	string m_mobileNumber = "";
+	protected void Page_Load(object sender, System.EventArgs e)
+	{
+		if (!IsPostBack) {
+			DataSet pDataset = new DataSet();
+			m_db = new DBManager(DataProvider.Oracle);
+			m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+			m_db.Open();
+			pDataset = m_db.ExecuteDataSet(CommandType.Text, "select TicketNumber from tbl_ticketmaster");
+
+			if (pDataset == null) {
+				m_db.Close();
+				m_db.Dispose();
+				// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+				Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "division Det");
+			}
+
+			pDataset = m_db.ExecuteDataSet(CommandType.Text, "select bank_name from tbl_bank_det");
+
+			if (pDataset == null) {
+				m_db.Close();
+				m_db.Dispose();
+				// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+				Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "division Det");
+			}
+
+			if (pDataset.Tables[0].Rows.Count > 0) {
+				for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+					cmbBankName.Items.Add(pDataset.Tables[0].Rows[i]["bank_name"].ToString());
+
+				}
+
+			}
+
+			listFilter = BindName();
+			pDataset.Dispose();
+			m_db.Close();
+			m_db.Dispose();
+			Session["AutoComplete"] = output.ToString();
+			ViewState["postids"] = System.Guid.NewGuid().ToString();
+			Session["postid"] = ViewState["postids"].ToString();
+
+		}
+		 CUSERDetails objUserDetails = new CUSERDetails();
+
+
+		objUserDetails = (CUSERDetails)Session["sesuUserDetails"];
+
+		if (objUserDetails == null) {
+
+			Response.Write("<script>alert('Session Expired');document.location.href='Login.aspx';</script>");
+			// if user entered not through the loginpage he has no permissions to view this
+			return;
+
+		}
+		listFilter = Session["AutoComplete"].ToString();
+	}
+
+	private string BindName()
+	{
+		DataSet pDataset = new DataSet();
+		pDataset = m_db.ExecuteDataSet(CommandType.Text, "select TicketNumber  from tbl_ticketmaster");
+		if (pDataset == null) {
+			m_db.Close();
+			m_db.Dispose();
+			// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+			Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + "division Det");
+		}
+		output.Append("[");
+		for (int i = 0; i <= pDataset.Tables[0].Rows.Count - 1; i++) {
+			output.Append((char)34 + pDataset.Tables[0].Rows[i]["TicketNumber"].ToString() +(char)34);
+
+			if (i != (pDataset.Tables[0].Rows.Count - 1)) {
+				output.Append(",");
+			}
+		}
+		output.Append("];");
+		return output.ToString();
+	}
+	protected void btnSave_Click(object sender, EventArgs e)
+	{
+		DataSet pDataset = new DataSet();
+		string strsql = "";
+		string m_DemandNoteNumber = "0";
+		string strMessage = "";
+		string strResponse = "";
+		CUSERDetails objUserDetails = new CUSERDetails();
+		int m_LTextention = 0;
+
+
+		//btnSave.Enabled = False
+		string m_receiptNumber = "0";
+
+		double m_total = 0;
+		int m_online = 0;
+		btnSave.Enabled = false;
+		objUserDetails = (CUSERDetails)Session["sesuUserDetails"];
+		if (string.IsNullOrEmpty(string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()))) {
+			ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Ticket Number');", true);
+			return;
+		}
+		if (string.IsNullOrEmpty(txtTotal.Text)) {
+			ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Please Save Demand Note First ');", true);
+			return;
+		}
+
+
+		if (cmbpaymentMode.SelectedIndex > 0) {
+			if (string.IsNullOrEmpty(txtChequeNumber.ToString())) {
+				ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Cheque Number/DD Number/RTGS Number ');", true);
+				return;
+			}
+
+			if (string.IsNullOrEmpty(txtChequeDate.ToString())) {
+				ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Enter Cheque Date');", true);
+				return;
+			}
+		}
+
+		if (!string.IsNullOrEmpty(string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()))) {
+			m_db = new DBManager(DataProvider.Oracle);
+			m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+			m_db.Open();
+
+			if (m_db.Connection.State == ConnectionState.Open) {
+				strsql = "select max(SUBSTRING(ReceiptNumber, 7, 8))+1 from tbl_Payment";
+				pDataset = m_db.ExecuteDataSet(CommandType.Text, strsql);
+				if ((pDataset != null)) {
+					if (pDataset.Tables[0].Rows.Count > 0 & (!Convert.IsDBNull(pDataset.Tables[0].Rows[0][0]))) {
+						m_receiptNumber = pDataset.Tables[0].Rows[0][0].ToString();
+					} else {
+						m_receiptNumber = "100000";
+					}
+				} else {
+					m_receiptNumber = "100000";
+
+				}
+				//If txtManualReceiptNumber.Text = "" Then
+				//    m_online = 1
+				//Else
+				//    m_online = 0
+				//End If
+				string m_bankName = "";
+				DateTime m_PaymentDate =System.DateTime.Now;
+				if (cmbpaymentMode.SelectedIndex == 0) {
+					m_bankName = " ";
+				}
+				// Dim temporaryToDate As DateTime
+				CultureInfo provider = CultureInfo.InvariantCulture;
+				if (!string.IsNullOrEmpty(txtManualReceiptDate.Text)) {
+					m_PaymentDate = DateTime.ParseExact(txtManualReceiptDate.Text, "dd-MM-yyyy", provider);
+				}
+				m_online = 1;
+				m_receiptNumber = txtDIV_name.Text.Substring(0, 1) + "-REC-" + m_receiptNumber;
+				txtReceiptNumber.Text = m_receiptNumber;
+				strsql = "INSERT INTO tbl_payment(   TicketNumber    ,ReceiptNumber      ,Amount  ,BankId  ,ChequeDate  ,ChequeNo  ,Date  ,md_code  ,co_code  ,discom_code  ,circle_code,Div_code,sub_div_code,Sec_code ,OnLineOffLine  ,PaymentDateTime  ,PaymentModes  ,PaymentPurpose    ,    createdDateTime  ,createdBy,ManualReceiptNo  ) VALUES (";
+				strsql += "'" + string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()) + "',";
+				strsql += "'" + txtReceiptNumber.Text + "',";
+				strsql += "'" + txtTotal.Text + "',";
+				strsql += "'" + m_bankName + "',";
+				strsql += "'" + txtChequeDate.Text + "',";
+				strsql += "'" + txtChequeNumber.Text + "',";
+				strsql += "Now(),";
+				strsql += "'000001',";
+				strsql += "'000001',";
+				strsql += "'000001',";
+				strsql += "'000001',";
+				strsql += "'" + txtDIV_code.Text + "',";
+				strsql += "'" + txtsubdiv_code.Text + "',";
+				strsql += "'" + txtsec_code.Text + "',";
+				strsql += "'" + m_online + "',";
+				strsql += "'" + m_PaymentDate.ToString("yyyy-MM-dd") + "','" + cmbpaymentMode.Text + "','Total',";
+				strsql += "Now(),";
+				strsql += "'" + objUserDetails.strUserName + "','" + txtManualReceiptNumber.Text + "')";
+
+
+				m_db.ExecuteNonQuery(CommandType.Text, strsql);
+				strsql = "";
+				strsql += "UPDATE tbl_ticketmaster ";
+				strsql += "SET";
+				strsql += "   ApplicationStatus = 'Payment Received' ";
+				strsql += "  WHERE TicketNumber = '" + string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()) + "'";
+
+				m_db.ExecuteNonQuery(CommandType.Text, strsql);
+				strMessage = "Dear Customer," + System.Environment.NewLine + "Your payment is received,Meter will be installed shortly.Contact " + txtResponsibleWorkerName.Text + "-" + txtWorkerNumber.Text + ".please contact FEDCO care 7894300300 for help.";
+				strResponse = m_sms.SendSingleSMS(txtMobileNumber.Text, strMessage).ToString();
+				strsql = "INSERT INTO tbl_sentmessage(   Mobile_number  ,Message  ,Response) VALUES (   '" + txtMobileNumber.Text + "' ,'" + strMessage + "','" + strResponse + "')";
+				m_db.ExecuteNonQuery(CommandType.Text, strsql);
+
+				strMessage = "Dear " + txtResponsibleWorkerName.Text + "," + System.Environment.NewLine + txtConsumerName.Text + "-" + txtMobileNumber.Text + " paid for NSC Ticket-" + string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()) + " Pls install meter within 2 days. part 1/2.";
+				strResponse = m_sms.SendSingleSMS(txtWorkerNumber.Text, strMessage).ToString();
+				strsql = "INSERT INTO tbl_sentmessage(   Mobile_number  ,Message  ,Response) VALUES (   '" + txtWorkerNumber.Text + "' ,'" + strMessage + "','" + strResponse + "')";
+				m_db.ExecuteNonQuery(CommandType.Text, strsql);
+
+				strMessage = "CD- " + txtLoad.Text + " KW,Address -" + txtaddress.Text;
+				strResponse = m_sms.SendSingleSMS(txtWorkerNumber.Text, strMessage).ToString();
+				strsql = "INSERT INTO tbl_sentmessage(   Mobile_number  ,Message  ,Response) VALUES (   '" + txtWorkerNumber.Text + "' ,'" + strMessage + "','" + strResponse + "')";
+				m_db.ExecuteNonQuery(CommandType.Text, strsql);
+				m_db.Close();
+				//  m_mail.SendMail(txtconsMailID.Text, txtConsumerName.Text, "t,est", strMessage)
+				// Response.Write("<script>alert('Ticket Saved Successfully');</script>")
+				ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Payment Record Saved Successfully');", true);
+				// btnSubmit.Enabled = True
+			}
+
+		}
+
+	}
+	public string FillZero(string m_value)
+	{
+		if (string.IsNullOrEmpty(m_value.ToString().Trim())) {
+			return "0.0";
+		} else {
+			return m_value;
+		}
+	}
+
+	protected void btnSubmit_Click(object sender, EventArgs e)
+	{
+		if (!string.IsNullOrEmpty(txtReceiptNumber.Text)) {
+			report = new ReportDocument();
+			report.Load(Server.MapPath("rptDemandNotePaymentmultiple.rpt"));
+
+			crParameterField = null;
+			crParameterField = new ParameterField();
+			crParameterField.ParameterFieldName = "pDemandnoteNumber";
+			crParameterField.ParameterValueType = ParameterValueKind.StringParameter;
+			crParameterDiscreteValue = null;
+			crParameterDiscreteValue = new ParameterDiscreteValue();
+			crParameterDiscreteValue.Value = "'" + txtDemandNoteNumber.Text + "'";
+			crParameterField.CurrentValues.Add(crParameterDiscreteValue);
+			paramValues = crParameterField.CurrentValues;
+			paramValues = null;
+			paramValues = new ParameterValues();
+			paramValues = crParameterField.CurrentValues;
+			report.DataDefinition.ParameterFields["pDemandnoteNumber"].ApplyCurrentValues(paramValues);
+			//report.Subreports(0).DataDefinition.ParameterFields("pDemandNoteNumber").ApplyCurrentValues(paramValues)
+			// report.Subreports(1).DataDefinition.ParameterFields("pDemandNoteNumber").ApplyCurrentValues(paramValues)
+
+			Sections crSections = default(Sections);
+			ReportObjects crReportObjects = default(ReportObjects);
+			SubreportObject crSubreportObject = default(SubreportObject);
+			Tables crTables = default(Tables);
+			TableLogOnInfo crTableLogOnInfo = default(TableLogOnInfo);
+			TableLogOnInfo loginfo = new TableLogOnInfo();
+			Database crDatabase = default(Database);
+			ReportDocument crSubreportDocument = default(ReportDocument);
+			report.PrintOptions.PaperOrientation = CrystalDecisions.Shared.PaperOrientation.Portrait;
+			report.PrintOptions.PaperSize = CrystalDecisions.Shared.PaperSize.DefaultPaperSize;
+			loginfo.ConnectionInfo.UserID = ConfigurationManager.AppSettings["UID"].ToString();
+			loginfo.ConnectionInfo.Password = ConfigurationManager.AppSettings["PWD"].ToString();
+			loginfo.ConnectionInfo.ServerName = ConfigurationManager.AppSettings["ServerName"].ToString();
+			loginfo.ConnectionInfo.DatabaseName = ConfigurationManager.AppSettings["DatabaseName"].ToString();
+			crDatabase = report.Database;
+			crTables = crDatabase.Tables;
+			foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables) {
+				crTableLogOnInfo = aTable.LogOnInfo;
+				crTableLogOnInfo.ConnectionInfo = loginfo.ConnectionInfo;
+				aTable.ApplyLogOnInfo(crTableLogOnInfo);
+			}
+			// THIS STUFF HERE IS FOR REPORTS HAVING SUBREPORTS
+			// set the sections object to the current report's section
+
+			crSections = report.ReportDefinition.Sections;
+			// loop through all the sections to find all the report objects
+			foreach (Section crSection in crSections) {
+				crReportObjects = crSection.ReportObjects;
+				//loop through all the report objects in there to find all subreports
+				foreach (ReportObject crReportObject in crReportObjects) {
+					if (crReportObject.Kind == ReportObjectKind.SubreportObject) {
+						crSubreportObject = (SubreportObject)crReportObject;
+						//open the subreport object and logon as for the general report
+						crSubreportDocument = crSubreportObject.OpenSubreport(crSubreportObject.SubreportName);
+						crDatabase = crSubreportDocument.Database;
+						crTables = crDatabase.Tables;
+						foreach (CrystalDecisions.CrystalReports.Engine.Table aTable in crTables) {
+							crTableLogOnInfo = aTable.LogOnInfo;
+							crTableLogOnInfo.ConnectionInfo = loginfo.ConnectionInfo;
+							aTable.ApplyLogOnInfo(crTableLogOnInfo);
+						}
+					}
+				}
+			}
+			System.IO.Directory.CreateDirectory(Server.MapPath("\\Reports"));
+			report.ExportToDisk(ExportFormatType.PortableDocFormat, Server.MapPath("Reports\\Rceipt" + txtDemandNoteNumber.Text.Substring(12, 6) + ".pdf"));
+			ClientScript.RegisterStartupScript(this.Page.GetType(), "popupOpener", "var popup=window.open('" + "Reports/Rceipt" + txtDemandNoteNumber.Text.Substring(12, 6) + ".pdf" + "','','width=800,height=670,toolbar=0,directories=0,menubar=0,resizable=0,copyhistory=0,scrollbars=0,resizable=0,status=0,top=20,left=50,overflow-x=hidden,overflow-y=hidden;')", true);
+			try {
+				if ((report != null)) {
+					report.Close();
+					report.Dispose();
+				}
+			} catch (Exception ex) {
+				// dataclass.write_error(ex.Message, Now.ToShortDateString(), ex.StackTrace)
+			}
+			//            Response.Clear()
+			//            Response.ClearContent()
+			//            Response.ClearHeaders()
+			//            Response.ContentType = "application/pdf"
+			//            Response.AddHeader("Content-Disposition", "attachment; filename=myfile.pdf")
+			//            Response.TransmitFile(documentPath)
+			//            Response.End()
+		} else {
+			ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Please save Payment Record ');", true);
+
+		}
+	}
+
+	protected void btnView_Click(object sender, EventArgs e)
+	{
+		if (!string.IsNullOrEmpty(string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()))) {
+			DataSet pDataset = new DataSet();
+			m_db = new DBManager(DataProvider.Oracle);
+			m_db.ConnectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DefaultConnection"].ConnectionString;
+			m_db.Open();
+			pDataset = m_db.ExecuteDataSet(CommandType.Text, "SELECT F.Employee_Name,F.Mobile_No,A.Mobile_number,A.TicketNumber, A.NewFirstName, A.LoadRequired,A.OldBuildingCompliment,A.sec_code,A.sub_div_code,A.div_code,C.sec_name,D.sub_div_name,E.div_name FROM tbl_ticketmaster A,tbl_section C,tbl_sub_division D,tbl_division E,tbl_employee F where  A.TicketNumber='" + string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()) + "' and A.sec_code = C.sec_code and A.sub_div_code = D.sub_div_code and A.div_code = E.division_code and a.ResponsibleWorker=f.Employee_code  ");
+
+			if (pDataset == null) {
+				m_db.Close();
+				m_db.Dispose();
+				// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+				Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + " Det");
+			}
+
+
+			if (pDataset.Tables[0].Rows.Count > 0) {
+				txtaddress.Text = pDataset.Tables[0].Rows[0]["OldBuildingCompliment"].ToString();
+				txtConsumerName.Text = pDataset.Tables[0].Rows[0]["NewFirstName"].ToString();
+				txtLoad.Text = pDataset.Tables[0].Rows[0]["LoadRequired"].ToString();
+				txtDIV_name.Text = pDataset.Tables[0].Rows[0]["div_name"].ToString();
+				txtDIV_code.Text = pDataset.Tables[0].Rows[0]["div_code"].ToString();
+				txtsubdiv_code.Text = pDataset.Tables[0].Rows[0]["sub_div_code"].ToString();
+				txtSubDiv_name.Text = pDataset.Tables[0].Rows[0]["sub_div_name"].ToString();
+				txtsec_code.Text = pDataset.Tables[0].Rows[0]["sec_code"].ToString();
+				txtSection_name.Text = pDataset.Tables[0].Rows[0]["sec_name"].ToString();
+				txtMobileNumber.Text = pDataset.Tables[0].Rows[0]["Mobile_number"].ToString();
+				txtWorkerNumber.Text = pDataset.Tables[0].Rows[0]["Mobile_No"].ToString();
+				txtResponsibleWorkerName.Text = pDataset.Tables[0].Rows[0]["Employee_Name"].ToString();
+
+			} else {
+				ScriptManager.RegisterStartupScript(this, GetType(), "showalert", "alert('Ticket Details Not Found');", true);
+				txtaddress.Text = "";
+				// pDataset.Tables[0].Rows[0]["OldBuildingCompliment")
+				txtConsumerName.Text = "";
+				//pDataset.Tables(0).Rows(0)("NewFirstName")
+				txtLoad.Text = "";
+				// pDataset.Tables[0].Rows[0]["LoadRequired")
+				txtDIV_name.Text = "";
+				// pDataset.Tables[0].Rows[0]["div_name")
+				txtDIV_code.Text = "";
+				// pDataset.Tables[0].Rows[0]["div_code")
+				txtsubdiv_code.Text = "";
+				// pDataset.Tables[0].Rows[0]["sub_div_code")
+				txtSubDiv_name.Text = "";
+				//pDataset.Tables(0).Rows(0)("sub_div_name")
+				txtsec_code.Text = "";
+				//pDataset.Tables(0).Rows(0)("sec_code")
+				txtSection_name.Text = "";
+				// pDataset.Tables[0].Rows[0]["sec_name")
+				txtMobileNumber.Text = "";
+				// pDataset.Tables[0].Rows[0]["Mobile_number")
+				txtWorkerNumber.Text = "";
+				// pDataset.Tables[0].Rows[0]["Mobile_No")
+				txtResponsibleWorkerName.Text = "";
+				//
+
+			}
+			pDataset = m_db.ExecuteDataSet(CommandType.Text, "SELECT Energy_Charges,Duty_Charges,DemandNoteNumber,EtimateNumber,Estimate_fee,Supervision_charges,CESS_charges,Security_deposit,Service_Connection_charges,Inspection_charges,Reconnection_fee,MISC_FEE,Processing_fee FROM tbl_demandnote  where  TicketNumber='" + string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()) + "' ");
+
+			if (pDataset == null) {
+				m_db.Close();
+				m_db.Dispose();
+				// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+				Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + " Det");
+			}
+
+
+			if (pDataset.Tables[0].Rows.Count > 0) {
+				txtDemandNoteNumber.Text = pDataset.Tables[0].Rows[0]["DemandNoteNumber"].ToString();
+				//   txtEstimateNumber.Text = pDataset.Tables[0].Rows[0]["EtimateNumber")
+				txtEstimateCost.Text = pDataset.Tables[0].Rows[0]["Estimate_fee"].ToString();
+				txtCessCharges.Text = pDataset.Tables[0].Rows[0]["CESS_charges"].ToString();
+				// txtMISC_Charges.Text = pDataset.Tables[0].Rows[0]["MISC_FEE")
+				txtProcessingFee.Text = pDataset.Tables[0].Rows[0]["Processing_fee"].ToString();
+				//  txtReconnectionFee.Text = pDataset.Tables[0].Rows[0]["Reconnection_fee")
+				txtSecurityDeposit.Text = pDataset.Tables[0].Rows[0]["Security_deposit"].ToString();
+				txtSeviceConnectionCharges.Text = pDataset.Tables[0].Rows[0]["Service_Connection_charges"].ToString();
+				txtSupervisionCharges.Text = pDataset.Tables[0].Rows[0]["Supervision_charges"].ToString();
+				txtEnergy_charges.Text = pDataset.Tables[0].Rows[0]["Energy_Charges"].ToString();
+				txtDuty_charges.Text = pDataset.Tables[0].Rows[0]["Duty_Charges"].ToString();
+				txtMISC_FEE.Text = pDataset.Tables[0].Rows[0]["MISC_FEE"].ToString();
+
+				txtTotal.Text = pDataset.Tables[0].Rows[0]["Energy_Charges"].ToString() + pDataset.Tables[0].Rows[0]["Duty_Charges"].ToString() + pDataset.Tables[0].Rows[0]["Supervision_charges"].ToString() + pDataset.Tables[0].Rows[0]["Service_Connection_charges"].ToString() + pDataset.Tables[0].Rows[0]["Estimate_fee"].ToString() + pDataset.Tables[0].Rows[0]["CESS_charges"].ToString() + pDataset.Tables[0].Rows[0]["MISC_FEE"].ToString() + pDataset.Tables[0].Rows[0]["Processing_fee"].ToString() + pDataset.Tables[0].Rows[0]["Reconnection_fee"].ToString() + pDataset.Tables[0].Rows[0]["Security_deposit"].ToString();
+				//   txtManualReceiptNumber.Text = pDataset.Tables[0].Rows[0]["ManualReceiptNo")
+			} else {
+				txtDemandNoteNumber.Text = "";
+				//pDataset.Tables(0).Rows(0)("DemandNoteNumber")
+				//   txtEstimateNumber.Text = pDataset.Tables[0].Rows[0]["EtimateNumber")
+				txtEstimateCost.Text = "0.00";
+				//pDataset.Tables(0).Rows(0)("Estimate_fee")
+				txtCessCharges.Text = "0.00";
+				//pDataset.Tables(0).Rows(0)("CESS_charges")
+				// txtMISC_Charges.Text = pDataset.Tables[0].Rows[0]["MISC_FEE")
+				txtProcessingFee.Text = "0.00";
+				//pDataset.Tables(0).Rows(0)("Processing_fee")
+				//  txtReconnectionFee.Text = pDataset.Tables[0].Rows[0]["Reconnection_fee")
+				txtSecurityDeposit.Text = "0.00";
+				//pDataset.Tables(0).Rows(0)("Security_deposit")
+				txtSeviceConnectionCharges.Text = "0.00";
+				//pDataset.Tables(0).Rows(0)("Service_Connection_charges")
+				txtSupervisionCharges.Text = "0.00";
+				//pDataset.Tables(0).Rows(0)("Supervision_charges")
+				txtEnergy_charges.Text = "0.00";
+				txtDuty_charges.Text = "0.00";
+				txtMISC_FEE.Text = "0.00";
+				txtTotal.Text = "0.00";
+				//
+			}
+
+			pDataset = m_db.ExecuteDataSet(CommandType.Text, "SELECT  ManualReceiptNo,ReceiptNumber,  Amount, BankId,  ChequeDate, ChequeNo,  Sec_code, sub_div_code, Div_code, OnLineOffLine, PaymentDateTime, PaymentModes, PaymentPurpose, PaymentUploadDateTime FROM tbl_payment  where  TicketNumber='" + string.Format("{0}", Request.Form["cmbTicketNumber"].ToString()) + "' ");
+
+			if (pDataset == null) {
+				m_db.Close();
+				m_db.Dispose();
+				// strstacktrace = HttpUtility.UrlEncode(m_db.Exception_str)
+				Response.Redirect("Error_page.aspx?ERROR=RECORDSET_FETCH_FAILED&MESSAGE=" + " Det");
+			}
+
+
+			if (pDataset.Tables[0].Rows.Count > 0) {
+				btnSave.Enabled = false;
+				txtManualReceiptNumber.Text = pDataset.Tables[0].Rows[0]["ManualReceiptNo"].ToString();
+				txtReceiptNumber.Text = pDataset.Tables[0].Rows[0]["ReceiptNumber"].ToString();
+				//   txtEstimateNumber.Text = pDataset.Tables[0].Rows[0]["EtimateNumber")
+				cmbpaymentMode.Text = pDataset.Tables[0].Rows[0]["PaymentModes"].ToString();
+				if (cmbpaymentMode.SelectedIndex > 0) {
+					txtChequeDate.Text = pDataset.Tables[0].Rows[0]["ChequeDate"].ToString();
+					// txtMISC_Charges.Text = pDataset.Tables[0].Rows[0]["MISC_FEE")
+					txtChequeNumber.Text = pDataset.Tables[0].Rows[0]["ChequeNo"].ToString();
+					//  txtReconnectionFee.Text = pDataset.Tables[0].Rows[0]["Reconnection_fee")
+					cmbBankName.Text = pDataset.Tables[0].Rows[0]["BankId"].ToString();
+				}
+			} else {
+				txtReceiptNumber.Text = "";
+				txtChequeDate.Text = "";
+				txtChequeNumber.Text = "";
+				btnSave.Enabled = true;
+			}
+
+			m_db.Close();
+			pDataset.Dispose();
+			m_db.Dispose();
+		}
+	}
+
+
+	private void NewDemandNote_PreRender(object sender, EventArgs e)
+	{
+
+		if (ViewState["postids"].ToString() != Session["postid"].ToString()) {
+			IsPageRefresh = true;
+		} else {
+			Session["postid"] = System.Guid.NewGuid().ToString();
+			ViewState["postids"] = Session["postid"].ToString();
+		}
+	}
+
+	protected void cmbpaymentMode_SelectedIndexChanged(object sender, EventArgs e)
+	{
+		if (cmbpaymentMode.SelectedIndex != 0) {
+			cmbBankName.Enabled = true;
+			txtChequeNumber.Enabled = true;
+			txtChequeDate.Enabled = true;
+			//   Page.RegisterStartupScript("impCal", "<script> document.getElementById('impCal').style.visibility='hidden'; </script> ")
+		} else {
+			cmbBankName.Enabled = false;
+			txtChequeNumber.Enabled = false;
+			txtChequeDate.Enabled = false;
+			//   Page.RegisterStartupScript("impCal", "<script> document.getElementById('impCal').style.visibility='display'; </script> ")
+
+		}
+	}
+	
+}
+
+

@@ -1,0 +1,148 @@
+﻿body {
+}
+.master {
+     border: 2px solid #9999CC;
+    padding:0px;
+    background-color:#F0F0F0;
+    border-top-left-radius:5px;   
+    border-top-right-radius:5px;
+    padding-top:0px; 
+    padding-bottom:2px; 
+    
+}
+.table {
+   border: 1px solid #9999CC;
+    padding:0px;
+    background-color:#F0F0F0;
+    border-top-left-radius:5px;   
+    border-top-right-radius:5px;
+    padding-top:0px; 
+    padding-bottom:2px; 
+    
+}
+
+.innertable {
+   border: 1px solid #9999CC;
+    padding:0px;
+    background-color:#F0F0F0;
+    border-top-left-radius:5px;   
+    border-top-right-radius:5px;
+    padding-top:5px; 
+    padding-bottom:5px; 
+    padding:16px,16px,16px,16px;
+}
+
+.Header {
+    font-family:Calibri;
+	font-size: 14px;
+    font-weight:normal;
+    color:white;
+    background-color:#5d7b9a;
+    font-weight: bold;
+    padding:0px,0px;
+    padding-top:0px;
+    border-top-left-radius:5px;   
+    border-top-right-radius:5px;  
+    height: 25px;
+    padding-left:6px
+}
+.Headers {
+    font-family:Arial;
+	font-size: 12px;
+    font-weight:normal;
+    color:white;
+    background-color:#5d7b9a;
+    font-weight: bold;   
+    border-top-left-radius:1px;   
+    border-top-right-radius:1px;  
+     padding-left:3px
+}
+.column {   
+    padding:2px,2px,2px,2px;
+}
+
+.INNERTABLE {
+    padding:2px,2px,2px,2px;
+}   
+
+.Labeltext {
+        font-family:Arial;
+		font-size: 8pt;
+        font-style: normal;
+        font-weight:normal;
+        padding-top:5px;
+        padding-left:5px;
+}
+.Textbox {
+    font-family:Arial;
+    font-weight:normal;
+    border-color:black;
+    border-collapse:collapse;
+    border: 1px solid #2F4F4F;
+    font-size:8pt;    
+}
+.panel {      
+    border-collapse:collapse;
+    background-color:#F0F0F0; 
+    border-color:#4cff00;   
+    font-size:8pt;
+    font-family:Arial;
+    padding-bottom:5px;
+    padding-left:2px;
+    padding-right:2px;
+    margin-right: 0px;
+}
+.combobox {
+    font-size:8pt;
+    font-family:Arial;
+    border: 1px solid #2F4F4F;
+    height: 18px;
+}
+.button {
+    font-size:7pt;
+    font-family:Arial;
+    flex-align:center;
+    padding:5px;    
+}
+
+.checkbox {
+    font-size:7pt;
+    font-family:Arial;
+    flex-align:center;
+    font:bold;
+}
+.buttons {
+    font-family:Arial;
+    font-size:8pt;
+    border:1px;
+    border-radius: 2px 2px 2px 2px;
+    border: 1px solid #246060; 
+    color: black;
+    padding: 0 10px 2px;
+    background-color:#d0d2d4;
+    border-color:black;
+}
+.checkbox {
+    font-family:Arial;
+    font-size:8pt;
+}
+.radio {
+  font-size:8pt;
+    font-family:Calibri;    
+}
+
+
+.GridHeaders {
+    font-family:Arial;
+	font-size: 12px;
+    font-weight:normal;
+    color:white;
+    background-color:#b0d0fb;
+    font-weight: bold;   
+    border-top-left-radius:1px;   
+    border-top-right-radius:1px;  
+    padding-left:2px;
+}
+.subheader {
+    font-family: Calibri; font-weight: bold; font-size: 10pt; color: #000099;
+}
