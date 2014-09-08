@@ -1,0 +1,108 @@
+
+SQL*Loader: Release 11.2.0.1.0 - Production on Mon Sep 8 09:10:47 2014
+
+Copyright (c) 1982, 2009, Oracle and/or its affiliates.  All rights reserved.
+
+Control File:   sbm.ctl
+Data File:      sbm.csv
+  Bad File:     sbm.bad
+  Discard File:  none specified
+ 
+ (Allow all discards)
+
+Number to load: ALL
+Number to skip: 0
+Errors allowed: 25000
+Bind array:     200000 rows, maximum of 20971520 bytes
+Continuation:    none specified
+Path used:      Conventional
+
+Table SBMUPLOADED, loaded from every logical record.
+Insert option in effect for this table: APPEND
+
+   Column Name                  Position   Len  Term Encl Datatype
+------------------------------ ---------- ----- ---- ---- ---------------------
+AMNTPAIDAFTERREBATEDATE             FIRST     *   }       CHARACTER            
+AMNTTOBEPAIDONREBATEDATE             NEXT     *   }       CHARACTER            
+AVGPOWERFACTOR                       NEXT     *   }       CHARACTER            
+AVGUNITBILLED                        NEXT     *   }       CHARACTER            
+BILLBASIS                            NEXT     *   }       CHARACTER            
+BILLDATE                             NEXT     *   }       DATE yyyymmdd hh24:mi:ss
+BILLMONTH                            NEXT     *   }       DATE yyyymmdd hh24:mi:ss
+BILLNO                               NEXT     *   }       CHARACTER            
+BILLPERIOD                           NEXT     *   }       CHARACTER            
+BILLTIME                             NEXT     *   }       CHARACTER            
+CONSUMERNO                           NEXT     *   }       CHARACTER            
+CUMULATIVEMETERSTATUSCOUNTER         NEXT     *   }       CHARACTER            
+CUMULATIVEPROVISIONALEC              NEXT     *   }       CHARACTER            
+CUMULATIVEPROVISIONALED              NEXT     *   }       CHARACTER            
+CUMULATIVEUNITS                      NEXT     *   }       CHARACTER            
+CURRENTMETERREADING                  NEXT     *   }       CHARACTER            
+CURRENTMETERREADINGDATE              NEXT     *   }       DATE yyyymmdd hh24:mi:ss
+CURRENTMETERSTATUS                   NEXT     *   }       CHARACTER            
+CURRENTTOTALBILL                     NEXT     *   }       CHARACTER            
+DISCONNECTIONDATE                    NEXT     *   }       DATE yyyymmdd hh24:mi:ss
+DPS                                  NEXT     *   }       CHARACTER            
+DUEDATE                              NEXT     *   }       DATE yyyymmdd hh24:mi:ss
+ED                                   NEXT     *   }       CHARACTER            
+HOUSELOCKADJUSTMENTAMOUNT            NEXT     *   }       CHARACTER            
+MDI                                  NEXT     *   }       CHARACTER            
+METERREADERID                        NEXT     *   }       CHARACTER            
+METERREADERNAME                      NEXT     *   }       CHARACTER            
+METERRENT                            NEXT     *   }       CHARACTER            
+MMFCORDC                             NEXT     *   }       CHARACTER            
+REBATEAMOUNT                         NEXT     *   }       CHARACTER            
+REBATEDATE                           NEXT     *   }       DATE yyyymmdd hh24:mi:ss
+REMARKS                              NEXT     *   }       CHARACTER            
+ROUNDAMOUNT                          NEXT     *   }       CHARACTER            
+SBMNO                                NEXT     *   }       CHARACTER            
+SLABEC1                              NEXT     *   }       CHARACTER            
+SLABEC2                              NEXT     *   }       CHARACTER            
+SLABEC3                              NEXT     *   }       CHARACTER            
+SLABEC4                              NEXT     *   }       CHARACTER            
+SLABUNITS1                           NEXT     *   }       CHARACTER            
+SLABUNITS2                           NEXT     *   }       CHARACTER            
+SLABUNITS3                           NEXT     *   }       CHARACTER            
+SLABUNITS4                           NEXT     *   }       CHARACTER            
+TARIFFCODE                           NEXT     *   }       CHARACTER            
+TOTALECCHARGES                       NEXT     *   }       CHARACTER            
+UNITCONSUMED                         NEXT     *   }       CHARACTER            
+MODIFIEDDATETIME                     NEXT     *   }       DATE yyyymmdd hh24:mi:ss
+MODIFIEDBY                           NEXT     *   }       CHARACTER            
+CREATEDDATETIME                      NEXT     *   }       DATE yyyymmdd hh24:mi:ss
+CREATEDBY                            NEXT     *   }       CHARACTER            
+PROCESSED                            NEXT     *   }       CHARACTER            
+INVOICESKIPPED                       NEXT     *   }       CHARACTER            
+INVOICEPROCESSED                     NEXT     *   }       CHARACTER            
+BATCHID                              NEXT     *   }       CHARACTER            
+FILENAME                             NEXT     *   }       CHARACTER            
+ARREARSPROCESSED                     NEXT     *   }       CHARACTER            
+INVOICEPOSTED                        NEXT     *   }       CHARACTER            
+PROCESSENDDATETIME                   NEXT     *   }       DATE yyyymmdd hh24:mi:ss
+PROCESSENDDATETIMETZID               NEXT     *   }       CHARACTER            
+PROCESSSTARTDATETIME                 NEXT     *   }       DATE yyyymmdd hh24:mi:ss
+PROCESSSTARTDATETIMETZID             NEXT     *   }       CHARACTER            
+RECORDUPLOADED                       NEXT     *   }       CHARACTER            
+
+value used for ROWS parameter changed from 200000 to 1332
+
+Table SBMUPLOADED:
+  20 Rows successfully loaded.
+  0 Rows not loaded due to data errors.
+  0 Rows not loaded because all WHEN clauses were failed.
+  0 Rows not loaded because all fields were null.
+
+
+Space allocated for bind array:               20963016 bytes(1332 rows)
+Read   buffer bytes:20971520
+
+Total logical records skipped:          0
+Total logical records read:            20
+Total logical records rejected:         0
+Total logical records discarded:        0
+
+Run began on Mon Sep 08 09:10:47 2014
+Run ended on Mon Sep 08 09:10:48 2014
+
+Elapsed time was:     00:00:00.60
+CPU time was:         00:00:00.08

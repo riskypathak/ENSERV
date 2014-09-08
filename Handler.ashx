@@ -19,29 +19,30 @@ public class Handler : IHttpHandler
     public void ProcessRequest(HttpContext context)
     {
         context.Response.ContentType = "text/plain";//"application/json";
+        
         if (context.Request.UrlReferrer.ToString().ToLower().Contains("sbmupload.aspx"))
         {
             try
             {
-                string tempUploadFolder = context.Server.MapPath("Uploads") + string.Format("\\Temp\\{0}", context.Request.QueryString["id"]);
                 UploadSBMFile(context);
-                Directory.Delete(tempUploadFolder, true);
             }
             catch (Exception)
             {
                 
                 
             }
-            
+            //string tempUploadFolder = context.Server.MapPath("Uploads") + string.Format("\\Temp\\{0}", context.Request.QueryString["id"]);
+           
+           
+             
            
         }
         else if (context.Request.UrlReferrer.ToString().ToLower().Contains("csvupload.aspx"))
         {
             try
             {
-                string tempUploadFolder = context.Server.MapPath("Uploads") + string.Format("\\Temp\\{0}", context.Request.QueryString["id"]);
                 UploadCSVFile(context);
-                Directory.Delete(tempUploadFolder, true);
+               
             }
             catch (Exception)
             {
@@ -62,8 +63,8 @@ public class Handler : IHttpHandler
         //double.Parse("0.000", styles);
 
         //return;
-        
-        string tempUploadFolder = context.Server.MapPath("Uploads") + string.Format("\\Temp\\{0}", context.Request.QueryString["id"]);
+        Guid folderId = Guid.NewGuid();
+        string tempUploadFolder = context.Server.MapPath("Uploads") + string.Format("\\Temp\\{0}", folderId); //context.Request.QueryString["id"]
         string ctlFolder = context.Server.MapPath("ctl");
 
         if (!Directory.Exists(tempUploadFolder))
@@ -96,7 +97,11 @@ public class Handler : IHttpHandler
             try
             {
                 //Copy ctl files to temp path
-                File.Copy(string.Format("{0}\\sbm.ctl", ctlFolder), string.Format("{0}\\sbm.ctl", tempUploadFolder));
+                string checkFile = tempUploadFolder + "\\sbm.ctl";
+                if (!File.Exists(checkFile))
+                {
+                    File.Copy(string.Format("{0}\\sbm.ctl", ctlFolder), string.Format("{0}\\sbm.ctl", tempUploadFolder));
+                }
 
                 string sbmUploadDirectory = System.Web.HttpContext.Current.Server.MapPath(System.Configuration.ConfigurationSettings.AppSettings["SBMUploadPath"]);
 
@@ -117,6 +122,7 @@ public class Handler : IHttpHandler
                     File.Copy(savedFileName, newFilePath);
 
                     Helper.UploadSBM(newFilePath, tempUploadFolder);
+                    Directory.Delete(tempUploadFolder, true);
                 }
                 catch (Exception ex)
                 {
@@ -138,8 +144,8 @@ public class Handler : IHttpHandler
             {
                 Directory.Delete(tempUploadFolder, true);
             }
-            
-            
+
+
 
             r.Add(new ViewDataUploadFilesResult()
             {
@@ -156,14 +162,15 @@ public class Handler : IHttpHandler
             //jsonObj.ContentEncoding = System.Text.Encoding.UTF8;
             //jsonObj.ContentType = "application/json;";
             // context.Response.Redirect("Demo.aspx");
+           // context.Response.Write("");
             context.Response.Write(jsonObj.ToString());
         }
 
     }
     private void UploadCSVFile(HttpContext context)
     {
-
-        string tempUploadFolder = context.Server.MapPath("Uploads") + string.Format("\\Temp\\{0}", context.Request.QueryString["id"]);
+        Guid FolderID = Guid.NewGuid();
+        string tempUploadFolder = context.Server.MapPath("Uploads") + string.Format("\\Temp\\{0}", FolderID);
         string ctlFolder = context.Server.MapPath("ctl");
         if (!Directory.Exists(tempUploadFolder))
         {
@@ -294,6 +301,7 @@ public class Handler : IHttpHandler
                     cmdInsertError.ExecuteNonQuery();
 
                     connection.Close();
+                    Directory.Delete(tempUploadFolder, true);
                 }
 
 
